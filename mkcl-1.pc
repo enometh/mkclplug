@@ -1,0 +1,10 @@
+prefix=/usr/local
+libdir=${prefix}/lib64
+includedir=${prefix}/include
+
+Name: mkcl-1
+Version: 1.1.11
+Description: ManKai Common Lisp
+
+Libs: -Wl,--rpath,${libdir} -L${libdir} -lmkcl -Wl,-O1 -Wl,--as-needed -lgmp -lm  -lrt
+CFlags: -I${includedir}
