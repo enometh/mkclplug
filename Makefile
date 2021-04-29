@@ -18,18 +18,18 @@ mkclplug.o: mkclplug.c
 monitorlib.o: monitorlib.c
 	$(CC) -c -o $@ $^ $(CFLAGS) $(shell pkg-config --cflags gio-2.0)
 
-install: mkclplug.h libmkclplug.a mkclplug-1.pc
+install: mkclplug.h libmkclplug.a mkclplug-1.pc install_shared
 	cp -apfv mkclplug.h $(DESTDIR)/$(INCLUDEDIR)
 	cp -apfv libmkclplug.a $(DESTDIR)/$(LIBDIR)
 	cp -apfv mkclplug-1.pc $(DESTDIR)/$(PKGCONFDIR)
 
-uninstall:
+uninstall: uninstall_shared
 	rm -fv $(DESTDIR)/$(INCLUDEDIR)/mkclplug.h
 	rm -fv $(DESTDIR)/$(LIBDIR)/libmkclplug.a
 	rm -fv $(DESTDIR)/$(PKGCONFDIR)/mkclplug-1.pc
 
 clean:
-	rm -fv main *.o *.a
+	rm -fv main *.o *.a *.lo *.so
 
 main: mkclplugtest.o libmkclplug.a
 	$(CC) -o $@ $^ $(LIBS) \
@@ -38,3 +38,21 @@ main: mkclplugtest.o libmkclplug.a
 mkclplugtest.o: mkclplugtest.c
 	$(CC) -c -o $@ $^ $(CFLAGS) \
 		$(shell $(pkg_config_cmd) --cflags mkclplug-1)
+
+libmkclplug.so: monitorlib.lo mkclplug.lo
+	$(CC) -shared -o $@ $^ $(shell $(pkg_config_cmd) --libs glib-2.0 mkcl-1)
+
+mkclplug.lo: mkclplug.c
+	$(CC) -c -o $@ $^ $(CFLAGS) \
+		 -fPIC -DPIC \
+		$(shell $(pkg_config_cmd) --cflags glib-2.0 mkcl-1)
+
+monitorlib.lo: monitorlib.c
+	$(CC) -c -o $@ $^ $(CFLAGS) $(shell pkg-config --cflags gio-2.0) \
+		 -fPIC -DPIC
+
+uninstall_shared:
+	rm -fv $(DESTDIR)/$(LIBDIR)/libmkclplug.so
+
+install_shared: libmkclplug.so
+	cp -apfv $^ $(DESTDIR)/$(LIBDIR)
