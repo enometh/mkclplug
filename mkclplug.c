@@ -167,14 +167,15 @@ initrc_pathname (const char *app)
 
 static mkcl_env stashed_env;
 
-void
+static void
 loadlispfile (char *lispinitfile)
 {
   g_assert (stashed_env);
+  MKCL = stashed_env ; //MKCL_ENV();
   gint64 start1, stop1;
   g_debug ("loading %s\n", lispinitfile);
   start1 = g_get_monotonic_time ();
-  mkcl_eval (stashed_env, "(let ((f \"%s\")) (and (probe-file f) (load f)))",
+  mkcl_eval (env, "(let ((f \"%s\")) (and (probe-file f) (load f)))",
 	     lispinitfile);
   stop1 = g_get_monotonic_time ();
   g_debug ("%s in %g seconds"
