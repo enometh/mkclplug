@@ -8,6 +8,9 @@ INCLUDEDIR ?= $(PREFIX)/include
 LIBDIR ?= $(PREFIX)/lib64
 PKGCONFDIR ?= $(LIBDIR)/pkgconfig
 
+#INSTALL ?= cp -apfv
+INSTALL ?= rsync -aizHuOJX --inplace
+
 libmkclplug.a: monitorlib.o mkclplug.o
 	ar crv $@ $^
 
@@ -18,10 +21,13 @@ mkclplug.o: mkclplug.c
 monitorlib.o: monitorlib.c
 	$(CC) -c -o $@ $^ $(CFLAGS) $(shell pkg-config --cflags gio-2.0)
 
-install: mkclplug.h libmkclplug.a mkclplug-1.pc install_shared
-	cp -apfv mkclplug.h $(DESTDIR)/$(INCLUDEDIR)
-	cp -apfv libmkclplug.a $(DESTDIR)/$(LIBDIR)
-	cp -apfv mkclplug-1.pc $(DESTDIR)/$(PKGCONFDIR)
+install: mkclplug.h libmkclplug.a mkclplug-1.pc install_dirs install_shared
+	$(INSTALL) mkclplug.h $(DESTDIR)/$(INCLUDEDIR)
+	$(INSTALL) libmkclplug.a $(DESTDIR)/$(LIBDIR)
+	$(INSTALL) mkclplug-1.pc $(DESTDIR)/$(PKGCONFDIR)
+
+install_dirs:
+	mkdir -pv $(DESTDIR)/$(INCLUDEDIR)  $(DESTDIR)/$(LIBDIR)  $(DESTDIR)/$(PKGCONFDIR)
 
 uninstall: uninstall_shared
 	rm -fv $(DESTDIR)/$(INCLUDEDIR)/mkclplug.h
@@ -55,4 +61,4 @@ uninstall_shared:
 	rm -fv $(DESTDIR)/$(LIBDIR)/libmkclplug.so
 
 install_shared: libmkclplug.so
-	cp -apfv $^ $(DESTDIR)/$(LIBDIR)
+	$(INSTALL) $^ $(DESTDIR)/$(LIBDIR)
