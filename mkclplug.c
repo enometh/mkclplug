@@ -2,7 +2,9 @@
 #include <glib.h>
 #include "monitorlib.h"
 
-// should drop into debugger
+// should never drop into debugger as it does not have the suitable
+// framing that MKCL expects at the root of the callstack. Any error
+// in the lisp form makes MKCL lose hard.
 static mkcl_object
 mkcl_call (MKCL, char *p)
 {
@@ -221,7 +223,10 @@ mkcl_shutdown ()
   return mkcl_shutdown_watchdog (stashed_env);
 }
 
-
+// This code is here to illustrate how the root stack should be setup
+// when evaluating lisp from C.  This doesn't actually work because
+// MKCL's toplevel wants to run in the main thread, and we want glib's
+// loop to run in the main thread.
 void
 mkcl_repl ()
 {
