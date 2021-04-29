@@ -1,0 +1,44 @@
+-*- Org -*-
+* MKCL Plug
+
+** SYNOPSIS
+*** =mkcl_initialize(char *app)=
+Boot up ManKai Common Lisp into your application.  This will read and
+load a lisp file ~/.config/<APP>/initrc.lisp if it exists.  This
+initrc file location is monitored and reloaded when it changes (or
+appears for the first time)
+
+This requires the GLIB main loop to be running.
+
+*** =mkcl_shutdown=
+*** =mkcl_repl=
+
+** Sample Files
+*** mkcl-1.pc
+pkg-config file which assumes mkcl is installed under /usr/local.
+(as of 210429 mkcl-config gets rpath wrong)
+*** mkclplug-1.pc
+*** Makefile
+*** mkclplugtest.c plugtest example
+#+BEGIN_SRC
+# install perhaps as root
+PREFIX=/usr/local LIBDIR=$PREFIX/lib64 make install
+PKG_CONFIG_PATH=$(pwd) pkg-config mkclplug-1 --cflags
+export PKG_CONFIG_PATH=$(pwd) ; gcc -o main mkclplugtest.c $(pkg-config --cflags --libs mkclplug-1)
+
+# set up initrc
+mkdir -pv ~/.config/mkclplugtest
+rm -fv  ~/.config/mkclplugtest/initrc.lisp
+ln -sv `pwd`/mkclplugtest_initrc.lisp ~/.config/mkclplugtest/initrc.lisp
+#+END_SRC
+
+* EOF
+#+BEGIN_EXAMPLE
+;;;
+;;;   Time-stamp: <>
+;;;   Touched: Thu Apr 29 09:42:39 2021 +0530 <enometh@net.meer>
+;;;   Bugs-To: enometh@net.meer
+;;;   Status: EXPERIMENTAL.  Do not redistribute
+;;;   Copyright (C) 2021 Madhu.  All Rights Reserved.
+;;;
+#+END_EXAMPLE
