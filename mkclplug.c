@@ -221,6 +221,13 @@ mkcl_initialize (char *app)
   g_free (initrc);
 }
 
+mkcl_object
+mkcl_init_module(void (*entry_point)(MKCL, mkcl_object, mkcl_object))
+{
+  g_return_val_if_fail(stashed_env, mk_cl_Cnil);
+  return mkcl_read_VV(stashed_env, mk_cl_Cnil, entry_point, mk_cl_Cnil);
+}
+
 int
 mkcl_shutdown ()
 {
