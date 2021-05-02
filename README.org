@@ -33,7 +33,8 @@ ln -sv `pwd`/mkclplugtest_initrc.lisp ~/.config/mkclplugtest/initrc.lisp
 #+END_SRC
 
 ** Examples
-#+html:  <a href="examples/">examples</a>
+[[./examples][examples]]
+
 
 * EOF
 #+BEGIN_EXAMPLE
