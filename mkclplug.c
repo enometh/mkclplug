@@ -168,6 +168,7 @@ initrc_pathname (const char *app)
 }
 
 static mkcl_env stashed_env;
+char *stashed_appname;
 
 static void
 loadlispfile (char *lispinitfile)
@@ -193,6 +194,9 @@ mkcl_initialize (char *app)
       g_error ("mkcl_initialize: ealready");
       return;
     }
+
+  g_message("initializing app %s", app);
+  stashed_appname = strdup(app);
 
   char *argv[] = { app, 0 };
   MKCL = mkcl_boot (1, argv, NULL);
