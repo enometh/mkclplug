@@ -32,6 +32,9 @@ rm -fv  ~/.config/mkclplugtest/initrc.lisp
 ln -sv `pwd`/mkclplugtest_initrc.lisp ~/.config/mkclplugtest/initrc.lisp
 #+END_SRC
 
+** Examples
+#+html:  <a href="examples/">examples</a>
+
 * EOF
 #+BEGIN_EXAMPLE
 ;;;

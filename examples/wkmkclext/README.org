@@ -1,0 +1,99 @@
+* MKCLPLUG EXAMPLES WKMKCLEXT
+
+** Synopsis
+A WebKit WebExtention skeleton with MKCL.
+
+This links to libmkclplug.so to use the bootstrap and initrc reloading
+features.  The webextension module (a linux shared library) is itself
+written in lisp (using the newly refurbished MKCL:C-EXPORT-FNAME
+facility to export lisp functions to C) but it needs still needs some
+C glue - =g_module_init_check= is used to bootstrap the module.
+
+** Files
+**** wkmkclext.lisp
+**** wkmkclext.lisp
+**** mkcl-backtrace
+**** Makefile
+* Outline
+** 1 set up initrc
+*** maybe set up wkmkclext initrc
+If it exists ~/.config/wkmkclext/initrc.lisp is loaded up when the
+extension is loaded into the browser.
+  #+BEGIN_SRC
+mkdir -pv ~/.config/wkmkclext
+rm -fv  ~/.config/wkmkclext/initrc.lisp
+ln -sv `pwd`/wkmkclext_initrc.lisp ~/.config/wkmkclext/initrc.lisp
+  #+END_SRC
+*** set up mkclrc
+  also set up a file which can load up defsystem, and can which find
+  sly cffi, cl-gir, and also this project wkmkclext
+  [[./sample-mkclrc.lisp][sample-mkclrc.lisp]]
+** 3 compile
+*** .fas objects
+  #+BEGIN_SRC
+(make::compile-system :wkmkclext :compile-during-load t :force nil)
+  #+END_SRC
+*** .o shared objects
+  #+BEGIN_SRC
+(let ((make::*operations-propagate-to-subsystems* t)
+      (make::*ecl-compile-file-system-p* t))
+  (make::compile-system :wkmkclext :compile-during-load t :force nil))
+  #+END_SRC
+** 4 dump bundled shared library with all deps to
+  #P"/tmp/libwkmkclext-library.so".
+  #+BEGIN_SRC
+(mk::mklib :wkmkclext :ecl-build-type :shared-library
+	   :defaults #p"/tmp/"
+	   :init-function-name "init_wkmkclext")
+;; nm "/tmp/libwkmkclext-library.so" | grep -i webkit
+;; 00000000004ee020 T webkit_web_extension_initialize
+  #+END_SRC
+** 5 create the webkit wextension module in /tmp/lib64
+  #+BEGIN_SRC
+gcc -c wkmkclext-check-init.c  -fPIC -DPIC  $(export PKG_CONFIG_PATH=../.. ; (pkg-config mkcl-1 mkclplug-1 --libs --cflags gmodule-2.0))
+gcc -shared -o /tmp/lib64/wkmkclext.so wkmkclext-check-init.o /tmp/libwkmkclext-library.so -L/usr/local/lib64 -lmkclplug -lgio-2.0 -lgobject-2.0 -lglib-2.0 -Wl,--rpath,/usr/local/lib64 -lmkcl -Wl,-O1 -Wl,--as-needed -lgmp -lm -lrt -fPIC -DPIC
+ldd /tmp/libwkmkclext-library.so
+LD_DEBUG=all ldd /tmp/lib64/wkmkclext.so
+  #+END_SRC
+** 6 copy wkmkclext.so to the directory which your browser uses for
+  extensions (via
+  =webkit_web_context_set_web_extensions_directory=). here my
+  MiniBrowser is patched to use WEBKIT_EXT_DIR
+  #+BEGIN_SRC
+WEBKIT_EXT_DIR=/tmp/lib64 MiniBrowser file://proc/self/maps
+  #+END_SRC
+
+* Bugs
+- irrecoverable floating point exceptions
+- irreconcilable differences between mkcl pthreads and the glib mainloop
+- =g_timeout_add= on ~any~ thread crashes mkcl
+
+* Quick Notes
+*** wkmkclext
+#+begin_example
+# make executable segments mmapable from /tmp
+mount -o remount,exec,discard,suid /tmp
+
+# build the non-simple wkmkclext library and extension dso
+rm -fv /tmp/libwkmkclext-library.so
+make /tmp/libwkmkclext-library.so
+make /tmp/lib64/wkmkclext.so
+
+# set up a web-extensions-directory for the extension process
+mkdir -p /tmp/wkextdir && rm -rfv /tmp/wkextdir/*
+ln -sv ../lib64/wkmkclext.so /tmp/wkextdir
+
+# run modified MiniBrowser which loads extensions from WEBKIT_EXT_DIR
+WEBKIT_EXT_DIR=/tmp/wkextdir minibrowser about:blank &
+#+end_example
+
+* EOF
+#+BEGIN_EXAMPLE
+;;;
+;;;   Time-stamp: <>
+;;;   Touched: Sat [Sun Mar 21 06:43:12 2021 +0530] <enometh@net.meer>
+;;;   Bugs-To: enometh@net.meer
+;;;   Status: Experimental.  Do not redistribute
+;;;   Copyright (C) 2021 Madhu.  All Rights Reserved.
+;;;
+#+END_EXAMPLE
