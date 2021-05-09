@@ -48,6 +48,17 @@
   (load-and-monitor initrc (cffi:callback load-lisp-file)
 		    nil))
 
+(format t "monitoring ~S~&" (runtime-initrc-path))
+
+
+
+#+nil
+(load "~/sly-config")
+
+#+nil
+(require 'slynk)
+
+#+nil
 (progn
   (ensure-directories-exist (runtime-initrc-path))
   (unless (probe-file  (runtime-initrc-path))
