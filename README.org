@@ -10,8 +10,10 @@ appears for the first time)
 
 This requires the GLIB main loop to be running.
 
+*** =mkcl_initialize_module(char *app, void (*entry_point)(MKCL, mkcl_object, mkcl_object))=
+call the entry_point before loading and monitoring initrc.
+
 *** =mkcl_shutdown=
-*** =mkcl_repl=
 
 ** Sample Files
 *** mkcl-1.pc
