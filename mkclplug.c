@@ -16,11 +16,11 @@ mkcl_call (MKCL, char *p)
 static void
 mkcl_initialize_disable_fpe (MKCL)
 {
-  if (!g_getenv("NODISABLEFPE")) {
+  const char *p;
+  if (!(p = g_getenv("NODISABLEFPE")) || !(strcmp(p, "1") == 0 )) {
   mkcl_call (env, ("\
 (progn\
-  (si::disable-fpe 'floating-point-underflow)\
-  (si::disable-fpe 'floating-point-overflow))"));
+  (si::disable-fpe t))"));
   }
 }
 
