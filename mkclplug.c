@@ -186,8 +186,8 @@ loadlispfile (char *lispinitfile)
 	   lispinitfile, (stop1 - start1) / 1.0e6, stop1, start1);
 }
 
-void
-mkcl_initialize (char *app)
+static void
+mkcl_initialize_boot (char *app)
 {
   if (stashed_env)
     {
@@ -214,18 +214,39 @@ mkcl_initialize (char *app)
 
   mkcl_initialize_disable_fpe (env);
   mkcl_initialize_crock_debugger (env);
+}
 
+void
+mkcl_load_and_monitor_initrc ()
+{
+  g_return_if_fail (stashed_appname);
   /* echo ~/.config/APP${SUFFIX:+.}${SUFFIX}/initrc.lisp */
-  char *initrc = initrc_pathname (app);
+  char *initrc = initrc_pathname (stashed_appname);
   load_and_monitor (initrc, loadlispfile, 0);
   g_free (initrc);
 }
 
-mkcl_object
-mkcl_init_module(void (*entry_point)(MKCL, mkcl_object, mkcl_object))
+void
+mkcl_initialize (char *app)
 {
-  g_return_val_if_fail(stashed_env, mk_cl_Cnil);
-  return mkcl_read_VV(stashed_env, mk_cl_Cnil, entry_point, mk_cl_Cnil);
+  mkcl_initialize_boot (app);
+  mkcl_load_and_monitor_initrc ();
+}
+
+mkcl_object
+mkcl_init_module (void (*entry_point) (MKCL, mkcl_object, mkcl_object))
+{
+  g_return_val_if_fail (stashed_env, mk_cl_Cnil);
+  return mkcl_read_VV (stashed_env, mk_cl_Cnil, entry_point, mk_cl_Cnil);
+}
+
+void
+mkcl_initialize_module (char *app,
+			void (*entry_point) (MKCL, mkcl_object, mkcl_object))
+{
+  mkcl_initialize_boot (app);
+  mkcl_init_module (entry_point);
+  mkcl_load_and_monitor_initrc ();
 }
 
 int
