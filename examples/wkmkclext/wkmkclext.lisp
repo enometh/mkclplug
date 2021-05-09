@@ -28,3 +28,7 @@
 	       #'(lambda (webpage request response)
 		   (when (fboundp 'on-send-request)
 		     (funcall 'on-send-request webpage request response)))))
+
+
+#+nil
+(gir:get-signal-desc (nget *webext* "WebPage") "send-request")
