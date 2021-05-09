@@ -32,7 +32,7 @@ mkcl_initialize_write_lisp_backtrace (MKCL)
     {
       initialized = 1;
       mkcl_call (env, ("\
-(defun write-lisp-backtrace (condition)\
+(defun cl-user::write-lisp-backtrace (condition)\
   (let* ((top (si:ihs-top))\
 	 (stream *error-output*)\
          (repeats top)\
@@ -59,14 +59,14 @@ mkcl_initialize_crock_debugger (MKCL)
       initialized = 1;
       mkcl_call (env, ("\
 (progn\
- (defvar *original-debugger-hook* *debugger-hook*)\
- (defvar *eval-successful-p* t)\
- (defun safe-eval-debugger-hook (condition old-hook)\
+ (defvar cl-user::*original-debugger-hook* *debugger-hook*)\
+ (defvar cl-user::*eval-successful-p* t)\
+ (defun cl-user::safe-eval-debugger-hook (condition old-hook)\
    (declare (ignore old-hook))\
    (format t \"Entering safe-eval-debugger-hook~&\")\
    #+nil(si::tpl-backtrace)\
    (write-lisp-backtrace condition)\
-   (setq *eval-successful-p* nil)\
+   (setq cl-user::*eval-successful-p* nil)\
    (throw :catch-tag condition)))"));
     }
 }
@@ -80,12 +80,12 @@ mkcl_crock_call (MKCL, char *p)
   MKCL_CL_CATCH_BEGIN (env, tag);
   mkcl_call (env, "\
 (progn\
- (setq *eval-successful-p* t)\
- (setq *debugger-hook* 'safe-eval-debugger-hook))");
+ (setq cl-user::*eval-successful-p* t)\
+ (setq *debugger-hook* 'cl-user::safe-eval-debugger-hook))");
   form = mkcl_fast_read_from_cstring (env, p);
   MKCL_CL_CATCH_END;
-  mkcl_call (env, "(setq *debugger-hook* *original-debugger-hook*)");
-  if (mkcl_fast_read_from_cstring (env, "*EVAL-SUCCESSFUL-P*") == mk_cl_Cnil)
+  mkcl_call (env, "(setq *debugger-hook* cl-user::*original-debugger-hook*)");
+  if (mkcl_fast_read_from_cstring (env, "CL-USER::*EVAL-SUCCESSFUL-P*") == mk_cl_Cnil)
     {
       g_warning ("eval: read failed");
       return;
@@ -93,12 +93,12 @@ mkcl_crock_call (MKCL, char *p)
   MKCL_CL_CATCH_BEGIN (env, tag);
   mkcl_call (env, "\
 (progn\
- (setq *eval-successful-p* t)\
- (setq *debugger-hook* 'safe-eval-debugger-hook))");
+ (setq cl-user::*eval-successful-p* t)\
+ (setq *debugger-hook* 'cl-user::safe-eval-debugger-hook))");
   ret = mk_cl_eval (env, form);
   MKCL_CL_CATCH_END;
-  mkcl_call (env, "(setq *debugger-hook* *original-debugger-hook*)");
-  if (mkcl_fast_read_from_cstring (env, "*EVAL-SUCCESSFUL-P*") == mk_cl_Cnil)
+  mkcl_call (env, "(setq *debugger-hook* cl-user::*original-debugger-hook*)");
+  if (mkcl_fast_read_from_cstring (env, "CL-USER::*EVAL-SUCCESSFUL-P*") == mk_cl_Cnil)
     {
       g_warning ("eval: eval failed");
       return;
