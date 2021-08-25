@@ -21,13 +21,13 @@ mkclplug.o: mkclplug.c
 monitorlib.o: monitorlib.c
 	$(CC) -c -o $@ $^ $(CFLAGS) $(shell pkg-config --cflags gio-2.0)
 
-install: mkclplug.h libmkclplug.a mkclplug-1.pc install_dirs install_shared
+install: mkclplug.h libmkclplug.a mkclplug-1.pc install_shared install_dirs
 	$(INSTALL) mkclplug.h $(DESTDIR)/$(INCLUDEDIR)
 	$(INSTALL) libmkclplug.a $(DESTDIR)/$(LIBDIR)
 	$(INSTALL) mkclplug-1.pc $(DESTDIR)/$(PKGCONFDIR)
 
-install_dirs:
-	mkdir -pv $(DESTDIR)/$(INCLUDEDIR)  $(DESTDIR)/$(LIBDIR)  $(DESTDIR)/$(PKGCONFDIR)
+install_dirs: $(DESTDIR)/$(INCLUDEDIR) $(DESTDIR)/$(LIBDIR) $(DESTDIR)/$(PKGCONFDIR)
+	mkdir -pv $?
 
 uninstall: uninstall_shared
 	rm -fv $(DESTDIR)/$(INCLUDEDIR)/mkclplug.h
@@ -35,7 +35,7 @@ uninstall: uninstall_shared
 	rm -fv $(DESTDIR)/$(PKGCONFDIR)/mkclplug-1.pc
 
 clean:
-	rm -fv main *.o *.a *.lo *.so
+	rm -fv main *.o *.a *.lo
 
 main: mkclplugtest.o libmkclplug.a
 	$(CC) -o $@ $^ $(LIBS) \
