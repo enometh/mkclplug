@@ -1,14 +1,17 @@
 pkg_config_cmd = PKG_CONFIG_PATH=$(shell pwd)/../.. pkg-config
 
-all: /tmp/lib64/wkmkclext.so main
+all: /tmp/lib64/wkmkclext.so main \
+	/tmp/lib64/wkmkclext-simple.so
 
 wkmkclext-check-init.o: wkmkclext-check-init.c
 	gcc -o $@ -c $^ -ggdb -fPIC -DPIC $(shell $(pkg_config_cmd) --cflags  mkcl-1 mkclplug-1 gmodule-2.0)
 
-LISP = mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendreqcb.lisp wkmkclext.lisp
+
+LISP = mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendreqcb.lisp wkmkclext.lisp sample-mkclrc.lisp
 
 /tmp/libwkmkclext-library.so: $(LISP)
 	mkcl -norc \
+		-eval '(setq *features* (delete :wkmkclext-simple *features*))' \
 		-eval '(load "sample-mkclrc.lisp")' \
 		-eval '(load "wkmkclext.system")' \
 		-eval "(make:compile-system 'wkmkclext :compile-during-load t :force nil)" \
@@ -27,6 +30,14 @@ test:
 main: gmodule-test.c
 	gcc -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --libs --cflags gmodule-2.0)
 
+wkmkclext-simple.o: wkext-simple.c
+	gcc -c -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --cflags mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0) -fPIC -DPIC -DWK_MKCL
+
+/tmp/lib64/wkmkclext-simple.so: wkmkclext-simple.o wkmkclext-check-init.o
+	mkdir -pv /tmp/lib64
+	gcc -o $@ -shared $^ $(shell $(pkg_config_cmd) --libs mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0)
+
 clean:
 	rm -fv main /tmp/lib64/wkmkclext.so /tmp/libwkmkclext-library.so \
-		wkmkclext-check-init.o
+		wkmkclext-check-init.o \
+		wkmkclext-simple.o

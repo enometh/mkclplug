@@ -22,7 +22,7 @@
   :components (
 	       "mkcl-backtrace"
 	       "wkmkclext-package"
-	       "wkmkclext"
+	       (:file "wkmkclext" :load-only #+wkmkclext-simple t #-wkmkclext-simple nil)
 	       "wkmkclext-sendreqcb"
                ))
 
