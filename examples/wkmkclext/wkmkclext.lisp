@@ -6,7 +6,9 @@
 
 (defvar *webext* (gir:require-namespace "WebKit2WebExtension"))
 
-(cffi:defcallback (webkit-web-extension-initialize :export-p t)
+(cffi:defcallback (webkit-web-extension-initialize
+		   #-wkmkclext-simple :export-p
+		   #-wkmkclext-simple t)
     :void
     ((WebKitWebExtension :pointer))
   (format t "Now playing: WebKitWebExtensionIntialize...~&")
@@ -17,6 +19,11 @@
 		     (when (fboundp 'on-page-created)
 		       (funcall 'on-page-created
 				WebKitWebExtension WebKitWebPage))))))
+
+#+wkmkclext-simple
+(cffi:foreign-funcall "register_init1" :pointer
+		      (cffi:callback webkit-web-extension-initialize)
+		      :void)
 
 (defun on-page-created (WebKitWebExtension WebKitWebPage)
   (declare (ignorable WebKitWebExtension))
