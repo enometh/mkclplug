@@ -213,6 +213,14 @@ mkcl_initialize_boot (char *app)
 //      atexit(cl_shutdown);
 
   mkcl_initialize_disable_fpe (env);
+
+  const char *p;
+  if (!(p = g_getenv("DISABLECMP")) || !(strcmp(p, "1") == 0)) {
+  mkcl_call (env, ("\
+(progn\
+  (require 'cmp))"));
+  }
+
   mkcl_initialize_crock_debugger (env);
 }
 
