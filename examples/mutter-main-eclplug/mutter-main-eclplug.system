@@ -1,0 +1,29 @@
+;;; -*- Mode: LISP; Package: :cl-user; BASE: 10; Syntax: ANSI-Common-Lisp; -*-
+;;;
+;;;   Time-stamp: <>
+;;;   Touched: Sun Jan 16 11:56:59 2022 +0530 <enometh@net.meer>
+;;;   Bugs-To: enometh@net.meer
+;;;   Status: Experimental.  Do not redistribute
+;;;   Copyright (C) 2022 Madhu.  All Rights Reserved.
+;;;
+(in-package "CL-USER")
+
+(defvar *mutter-main-eclplug-source-dir*
+  (merge-pathnames "cl/mkclplug/examples/mutter-main-eclplug/"
+		   (translate-logical-pathname "HOME:")))
+(defvar *mutter-main-eclplug-binary-dir*
+  (binary-directory *mutter-main-eclplug-source-dir*))
+
+(mk:defsystem :mutter-main-eclplug
+   :source-pathname *mutter-main-eclplug-source-dir*
+   :binary-pathname *mutter-main-eclplug-binary-dir*
+   :source-extension "lisp"
+   :depends-on ("girlib")
+   :components (
+		"package"
+		"dbus-backdoor"
+		"main"
+               ))
+
+#+nil
+(mk:oos :mutter-main-eclplug :load :compile-during-load t)
