@@ -1,0 +1,19 @@
+-*- Org -*-
+* EXAMPLE: mutter-main-eclplug: eclplug in mutter's main process
+
+** set up an app ecl-mutter-main
+Patch a call
+#+BEGIN_SRC
+#define APP "ecl-mutter-main"
+mkcl_initialize(APP);
+#+END_SRC
+in =mutter/src/core/mutter.c= =main=
+
+** set up initrc for ecl-mutter-main
+#+BEGIN_SRC shell
+mkdir -pv ~/.config/ecl-mutter-main/
+test -h  ~/.config/ecl-mutter-main/initrc.lisp
+rm -fv  ~/.config/ecl-mutter-main/initrc.lisp
+ln -sv `pwd`/ecl-mutter-main-initrc.lisp ~/.config/ecl-mutter-main/initrc.lisp
+#+END_SRC shell
+
