@@ -1,0 +1,10 @@
+prefix=/usr/local
+libdir=${prefix}/lib64
+includedir=${prefix}/inlcude
+
+Name: ecl-1
+Version: 21.2.1
+Description: Embedded Common Lisp
+
+Libs: -Wl,--rpath,${libdir} -L${libdir} -lecl -Wl,-O1 -Wl,--as-needed -lgc -lpthread -ldl -lm
+CFlags: -I${includedir}

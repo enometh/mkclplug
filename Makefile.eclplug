@@ -1,0 +1,22 @@
+
+include Makefile
+
+eclplug.lo: eclplug.c
+	$(CC) -c -o $@ $^ $(CFLAGS) -fPIC -DPIC \
+		$(shell $(pkg_config_cmd) --cflags glib-2.0) \
+		$(shell ecl-config --cflags)
+
+libeclplug.so:  monitorlib.lo eclplug.lo
+	$(CC) -shared -o $@ $^
+
+clean_eclplug:
+	rm -fv eclplug.lo libeclplug.so
+
+install_eclplug: eclplug.h libeclplug.so
+	$(INSTALL) eclplug.h $(DESTDIR)/$(INCLUDEDIR)
+	$(INSTALL) eclplug-1.pc $(DESTDIR)/$(PKGCONFDIR)
+	$(INSTALL) libeclplug.so $(DESTDIR)/$(LIBDIR)
+
+uninstall_eclplug:
+	rm -fv $(DESTDIR)/$(INCLUDEDIR)/eclplug.h
+	rm -fv $(DESTDIR)/$(PKGCONFDIR)/eclplug-1.pc
