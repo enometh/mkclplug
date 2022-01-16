@@ -1,0 +1,8 @@
+-*- Org -*-
+
+** ECLPLUG notes
+
+#+BEGIN_SRC shell
+make -f Makefile.eclplug libeclplug.so
+make -f Makefile.eclplug install_eclplug
+#+END_SRC

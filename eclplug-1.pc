@@ -1,0 +1,11 @@
+prefix=/usr/local
+libdir=${prefix}/lib64
+includedir=${prefix}/include
+
+Name: eclplug-1
+Version: 0.0
+Description: Plug for Embedded Common Lisp
+Requires: glib-2.0, gio-2.0, gio-unix-2.0, ecl-1
+
+Libs: -L${libdir} -leclplug
+CFlags: -I${includedir}
