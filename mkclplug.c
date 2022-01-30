@@ -105,11 +105,15 @@ mkcl_crock_call (MKCL, char *p)
     }
 }
 
+static mkcl_env stashed_env;
+char *stashed_appname;
 
 // vararg safe eval
 void
-mkcl_eval (MKCL, const char *fmt, ...)
+mkcl_eval (const char *fmt, ...)
 {
+  MKCL = stashed_env;
+
   char buf[74], *p = buf, *np;
   int n, size = sizeof (buf);;
   va_list ap;
@@ -167,9 +171,6 @@ initrc_pathname (const char *app)
   return initrc;
 }
 
-static mkcl_env stashed_env;
-char *stashed_appname;
-
 static void
 loadlispfile (char *lispinitfile)
 {
@@ -178,7 +179,7 @@ loadlispfile (char *lispinitfile)
   gint64 start1, stop1;
   g_debug ("loading %s\n", lispinitfile);
   start1 = g_get_monotonic_time ();
-  mkcl_eval (env, "(let ((f \"%s\")) (and (probe-file f) (load f)))",
+  mkcl_eval ("(let ((f \"%s\")) (and (probe-file f) (load f)))",
 	     lispinitfile);
   stop1 = g_get_monotonic_time ();
   g_debug ("%s in %g seconds"
