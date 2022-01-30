@@ -1,0 +1,29 @@
+* mkclplug/examples/vala
+
+** eclplug hello world
+print a message initialize eclp, run the main loop until ^C
+*** make.sh
+#+begin_src zsh
+export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/; \
+valac  --verbose --debug \
+ --pkg glib-2.0 --pkg posix --pkg eclplug-1  \
+ --vapidir=../../vapi \
+ eclplughello.vala 2>&1
+#+end_src zsh
+** run.sh
+#+begin_src zsh
+export G_MESSAGES_DEBUG=all HOME=/dev/shm/nobody; ./eclplughello &
+#+end_src
+
+** mkclplug hello world
+*** make.sh
+#+begin_src zsh
+export PKG_CONFIG_PATH=/usr/local/lib64/pkgconfig/; \
+valac  --verbose --debug \
+ --pkg glib-2.0 --pkg posix --pkg mkclplug-1  \
+ --vapidir=../../vapi \
+ mkclplughello.vala 2>&1
+#+end_src
+#+begin_src zsh
+export G_MESSAGES_DEBUG=all HOME=/dev/shm/nobody; ./mkclplughello &
+#+end_src
