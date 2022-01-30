@@ -24,7 +24,7 @@ pkg-config file which assumes mkcl is installed under /usr/local.
 *** mkclplugtest.c plugtest example
 #+BEGIN_SRC
 # install perhaps as root
-PREFIX=/usr LIBDIR=$PREFIX/lib64 make install -n
+PREFIX=/usr/local LIBDIR=$PREFIX/lib64 make install
 PKG_CONFIG_PATH=$(pwd) pkg-config mkclplug-1 --cflags
 export PKG_CONFIG_PATH=$(pwd) ; gcc -o main mkclplugtest.c $(pkg-config --cflags --libs mkclplug-1)
 
