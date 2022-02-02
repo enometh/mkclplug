@@ -230,9 +230,9 @@ mkcl_load_and_monitor_initrc ()
 {
   g_return_if_fail (stashed_appname);
   /* echo ~/.config/APP${SUFFIX:+.}${SUFFIX}/initrc.lisp */
-  char *initrc = initrc_pathname (stashed_appname);
+  const char *override = g_getenv ("INITRC");
+  char *initrc = override && *override ? (char *) override : initrc_pathname (stashed_appname);
   load_and_monitor (initrc, loadlispfile, 0);
-  g_free (initrc);
 }
 
 void
