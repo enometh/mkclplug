@@ -9,8 +9,8 @@
 	    :node-info gdbus::$eval-server-introspection-xml
 	    :method-handlers
 	    `(("Eval" . gdbus::eval-server-eval))
-	    :bus-name (format nil "code.girlib.muttermaineclplug.id~D" pid)
-	    :object-path (format nil "/code/muttermaineclplug/~D" pid)
+	    :bus-name (format nil "org.gnome.Mutter.Lisp")
+	    :object-path (format nil "/eval")
 	    )))
     (gdbus:register server)
     (gdbus:bus-name (slot-value server 'gdbus:bus-name) :own)
@@ -21,5 +21,8 @@
 (gdbus:unregister $eval-server)
 (gdbus:bus-name (slot-value $eval-server 'gdbus:bus-name) :own)
 (gdbus:bus-name (slot-value $eval-server 'gdbus:bus-name) :unown)
-gdbus call --session --dest ":1.2717" --object-path "/code/muttermaineclplug/30229" --method "code.girlib.EvalServer.Eval" '(progn(slynk-start))'
+gdbus call --session --dest org.gnome.Mutter.Lisp --object-path /eval \
+ --method "code.girlib.EvalServer.Eval" '(+ 2 3)'
+gdbus call --session --dest org.gnome.Mutter.Lisp --object-path /eval \
+ --method "code.girlib.EvalServer.Eval" '(slynk-start)'
 ||#
