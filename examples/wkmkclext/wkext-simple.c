@@ -9,6 +9,20 @@ void init_wkmkclext(MKCL, mkcl_object cblock, mkcl_object fasl_filename)
 {
   g_setenv("WKEXTSIMPLE", "1", TRUE);
 }
+#ifdef WK_ECL
+#error define one of WK_MKCL or WK_ECL
+#endif
+#endif
+
+#ifdef WK_ECL
+#include <eclplug.h>
+void init_wkeclext(cl_object entry)
+{
+  g_setenv("WKEXTSIMPLE", "1", TRUE);
+}
+#ifdef WK_MKCL
+#error define one of WK_MKCL or WK_ECL
+#endif
 #endif
 
 void (*init1)(void *webkitwebextension) = NULL;
@@ -29,6 +43,9 @@ webkit_web_extension_initialize (WebKitWebExtension *extension)
 	fprintf(stderr,
 #ifdef WK_MKCL
 		"wkmkclext"
+#endif
+#ifdef WK_ECL
+		"wkeclext"
 #endif
 		" initialize\n");
 

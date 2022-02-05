@@ -1,0 +1,37 @@
+
+** WKECLEXT notes
+
+most of the infrastrucure works with ECL too. Build corresponding
+shared object targets for ECL. See Makefile.eclplug
+
+- 220205
+Use the same lisp wkmkclplug.system though it is running in ECL.
+Until defsystem =mk::mklib= is fixed dump the concatenated shared
+library to a temporary directory and rename it to
+/tmp/libwkeclext-library.so.
+
+*** wkeclext
+#+begin_example
+rm -fv /tmp/libwkeclext-library.so
+make -f Makefile.eclplug /tmp/libwkeclext-library.so &
+make -f Makefile.eclplug /tmp/lib64/wkeclext.so &
+
+mkdir -p /tmp/wkextdir && rm -rfv /tmp/wkextdir/*
+ln -sv ../lib64/wkeclext.so /tmp/wkextdir/
+
+G_MESSAGES_DEBUG=all \
+WEBKIT_EXT_DIR=/tmp/wkextdir minibrowser about:blank &
+#+end_example
+
+*** wkeclext-simple
+#+BEGIN_SRC shell
+rm -fv /tmp/lib64/wkeclext-simple.so
+make -f Makefile.eclplug /tmp/lib64/wkeclext-simple.so
+
+mkdir -p /tmp/wkextdir && rm -rfv /tmp/wkextdir/*
+ln -sv ../lib64/wkeclext-simple.so /tmp/wkextdir
+
+G_MESSAGES_DEBUG=all \
+WEBKIT_EXT_DIR=/tmp/wkextdir minibrowser about:blank &
+#+END_SRC
+
