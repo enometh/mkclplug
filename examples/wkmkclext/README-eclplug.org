@@ -1,0 +1,16 @@
+
+** WKECLEXT notes
+
+most of the infrastrucure works with ECL too. Build corresponding
+shared object targets for ECL. See Makefile.eclplug
+
+- 220205
+Use the same lisp wkmkclplug.system though it is running in ECL.
+Until defsystem =mk::mklib= is fixed dump the concatenated shared
+library to a temporary directory and rename it to
+/tmp/libwkeclext-library.so.
+
+#+BEGIN_SRC shell
+make -f Makefile.eclplug /tmp/lib64/wkeclext-simple.so
+make -f Makefile.eclplug all_eclplug
+#+END_SRC
