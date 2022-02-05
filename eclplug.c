@@ -239,3 +239,11 @@ ecl_shutdown ()
   cl_shutdown ();
   return 1;
 }
+
+void
+ecl_initialize_module (char *app, void (*entry_point) (cl_object))
+{
+  ecl_initialize_boot (app);
+  ecl_init_module (NULL, entry_point);
+  ecl_load_and_monitor_initrc ();
+}
