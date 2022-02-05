@@ -1,4 +1,7 @@
+# FIXME: can directly set PKG_CONFIG_PATH
 pkg_config_cmd = PKG_CONFIG_PATH=$(shell pwd)/../.. pkg-config
+
+CLEANOBJ =
 
 all: /tmp/lib64/wkmkclext.so main \
 	/tmp/lib64/wkmkclext-simple.so
@@ -6,6 +9,7 @@ all: /tmp/lib64/wkmkclext.so main \
 wkmkclext-check-init.o: wkmkclext-check-init.c
 	gcc -o $@ -c $^ -ggdb -fPIC -DPIC $(shell $(pkg_config_cmd) --cflags  mkcl-1 mkclplug-1 gmodule-2.0)
 
+CLEANOBJ += wkmkclext-check-init.o
 
 LISP = mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendreqcb.lisp wkmkclext.lisp sample-mkclrc.lisp
 
@@ -23,12 +27,16 @@ LISP = mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendreqcb.lisp wkmkc
 	mkdir -pv /tmp/lib64
 	gcc -o $@ -shared $^ $(shell $(pkg_config_cmd) --libs mkcl-1 mkclplug-1 gmodule-2.0)
 
+CLEANOBJ += /tmp/lib64/wkmkclext.so /tmp/libwkmkclext-library.so
+
 test:
 	WEBKIT_EXT_DIR=/tmp/lib64 MiniBrowser file:///proc/self/maps
 
 # ./main /tmp/lib64/wkmkclext.so
 main: gmodule-test.c
 	gcc -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --libs --cflags gmodule-2.0)
+
+CLEANOBJ += main
 
 wkmkclext-simple.o: wkext-simple.c
 	gcc -c -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --cflags mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0) -fPIC -DPIC -DWK_MKCL
@@ -37,7 +45,7 @@ wkmkclext-simple.o: wkext-simple.c
 	mkdir -pv /tmp/lib64
 	gcc -o $@ -shared $^ $(shell $(pkg_config_cmd) --libs mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0)
 
+CLEANOBJ += /tmp/lib64/wkmkclext-simple.so wkmkclext-simple.o
+
 clean:
-	rm -fv main /tmp/lib64/wkmkclext.so /tmp/libwkmkclext-library.so \
-		wkmkclext-check-init.o \
-		wkmkclext-simple.o
+	rm -fv $(CLEANOBJ)
