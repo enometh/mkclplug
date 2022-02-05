@@ -154,7 +154,7 @@ mkcl_eval (const char *fmt, ...)
 	}
     }
   mkcl_crock_call (env, p);
-  if (p)
+  if (!(p == buf))
     free (p);
 }
 
