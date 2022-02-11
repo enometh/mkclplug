@@ -39,17 +39,13 @@ main: gmodule-test.c
 CLEANOBJ += main
 
 wkmkclext-simple.o: wkext-simple.c
-	gcc -c -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --cflags mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0) -fPIC -DPIC -DWKEXT_APPNAME='"wkmkclext"'
+	gcc -c -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --cflags mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0) -fPIC -DPIC -DWK_MKCL
 
-wkext-check-init-simple.o: wkext-check-init-simple.c
-	gcc -o $@ -c $^ -ggdb -fPIC -DPIC $(shell $(pkg_config_cmd) --cflags  mkcl-1 mkclplug-1 gmodule-2.0)
-
-/tmp/lib64/wkmkclext-simple.so: wkmkclext-simple.o wkext-check-init-simple.o
+/tmp/lib64/wkmkclext-simple.so: wkmkclext-simple.o wkmkclext-check-init.o
 	mkdir -pv /tmp/lib64
 	gcc -o $@ -shared $^ $(shell $(pkg_config_cmd) --libs mkcl-1 mkclplug-1 webkit2gtk-web-extension-4.0)
 
-CLEANOBJ += /tmp/lib64/wkmkclext-simple.so wkmkclext-simple.o wkext-check-init-simple.o
+CLEANOBJ += /tmp/lib64/wkmkclext-simple.so wkmkclext-simple.o
 
 clean:
 	rm -fv $(CLEANOBJ)
-
