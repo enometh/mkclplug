@@ -100,6 +100,7 @@ g_module_check_init (GModule * module)
 		(dump-make-script :foo))
 	      "/dev/shm/1.sh")
 
+#+nil
 (string->file (with-output-to-string (*standard-output*)
 		(dump-make-script :wkmkclext))
 	      "/dev/shm/1.sh")
