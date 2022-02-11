@@ -12,5 +12,5 @@ library to a temporary directory and rename it to
 
 #+BEGIN_SRC shell
 make -f Makefile.eclplug /tmp/lib64/wkeclext-simple.so
-make -f Makefile.eclplug all_eclplug
+make -f Makefile.eclplug all_eclext
 #+END_SRC
