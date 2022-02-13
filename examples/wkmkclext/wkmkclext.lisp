@@ -4,6 +4,13 @@
 ;; madhu 210502 otherwise our cffi export-p mechanism with mkcl's
 ;; c-export-name doesn't work
 
+(defvar +wkmkclext-simple-feature-present-p+ #+wkmkclext-simple t #-wkmkclext-simple nil)
+(eval-when (load eval)
+  (assert (eq +wkmkclext-simple-feature-present-p+
+	      (load-time-value (find :wkmkclext-simple *features*)))
+      nil "WKMKCLEXT-SIMPLE Feature ~:[absent~;present~] at compile time but ~:*~:[present~;absent~] at run time"
+    +wkmkclext-simple-feature-present-p+))
+
 (defvar *webext* (gir:require-namespace "WebKit2WebExtension"))
 
 (cffi:defcallback (webkit-web-extension-initialize
