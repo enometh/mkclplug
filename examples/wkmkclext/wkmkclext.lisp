@@ -11,7 +11,7 @@
 		   #-wkmkclext-simple t)
     :void
     ((WebKitWebExtension :pointer))
-  (g-message "Now playing: WebKitWebExtensionIntialize...~&")
+  (format t "Now playing: WebKitWebExtensionIntialize...~&")
   (let ((gobject (gir::build-object-ptr (gir:nget *webext* "WebExtension")
 					WebKitWebExtension)))
     (gir:connect gobject "page-created"

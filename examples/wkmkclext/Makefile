@@ -11,7 +11,7 @@ wkmkclext-check-init.o: wkmkclext-check-init.c
 
 CLEANOBJ += wkmkclext-check-init.o
 
-LISP = g-logger.lisp mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendreqcb.lisp wkmkclext.lisp sample-mkclrc.lisp
+LISP = mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendreqcb.lisp wkmkclext.lisp sample-mkclrc.lisp
 
 /tmp/libwkmkclext-library.so: $(LISP)
 	mkcl -norc \

@@ -11,7 +11,6 @@ C glue - =g_module_init_check= is used to bootstrap the module.
 
 ** Files
 **** wkmkclext.lisp
-**** g-logger.lisp
 **** wkmkclext.lisp
 **** mkcl-backtrace
 **** Makefile

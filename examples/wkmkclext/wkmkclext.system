@@ -21,7 +21,6 @@
   :depends-on ("cl-gir" "closer-mop")
   :components (
 	       "mkcl-backtrace"
-	       "g-logger"
 	       "wkmkclext-package"
 	       "wkmkclext"
 	       "wkmkclext-sendreqcb"
