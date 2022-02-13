@@ -18,9 +18,9 @@ LISP = g-logger.lisp mkcl-backtrace.lisp wkmkclext-package.lisp wkmkclext-sendre
 		-eval '(setq *features* (delete :wkmkclext-simple *features*))' \
 		-eval '(load "sample-mkclrc.lisp")' \
 		-eval '(load "wkmkclext.system")' \
-		-eval "(require 'wkmkclext)" \
+		-eval "(make:compile-system 'wkmkclext :compile-during-load t :force nil)" \
 		-eval '(let ((make::*operations-propagate-to-subsystems* t) (make::*ecl-compile-file-system-p* t)) (make::compile-system :wkmkclext :compile-during-load t :force nil))' \
-		-eval '(mk::mklib :wkmkclext :ecl-build-type :shared-library  :defaults #p"/tmp/"  :init-function-name "init_wkmkclext")' \
+		-eval '(make::mklib :wkmkclext :ecl-build-type :shared-library :defaults #p"/tmp/" :init-function-name "init_wkmkclext")' \
 		-eval '(mkcl:quit)'
 
 /tmp/lib64/wkmkclext.so: /tmp/libwkmkclext-library.so wkmkclext-check-init.o
