@@ -1,5 +1,7 @@
 #include <glib-unix.h>
 #include <mkcl/mkcl.h>
+#include <mkcl/object.h>
+#include <mkcl/internal.h>
 #include "mkclplug.h"
 #define APP "mkclplugtest"
 
