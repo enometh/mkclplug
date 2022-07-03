@@ -1,4 +1,5 @@
 #include <mkcl/mkcl.h>
+#include <mkcl/internal.h>
 #include <glib.h>
 #include "monitorlib.h"
 
