@@ -37,7 +37,7 @@ uninstall: uninstall_shared
 clean:
 	rm -fv main *.o *.a *.lo
 
-main: mkclplugtest.o libmkclplug.a
+mkclplugtest: mkclplugtest.o libmkclplug.a
 	$(CC) -o $@ $^ $(LIBS) \
 		 $(shell $(pkg_config_cmd) --libs mkclplug-1)
 
