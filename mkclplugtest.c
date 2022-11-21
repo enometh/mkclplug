@@ -19,7 +19,8 @@ handle_ctrl_c(gpointer user_data)
 int
 main (int argc, char **argv)
 {
-  mkcl_initialize (APP);
+
+  mkcl_initialize (argc > 1 ? argv[1] : APP);
 
   GSource *source = g_unix_signal_source_new (SIGINT);
   // fixme: this is basically wrong because mkcl wants to handle INT
