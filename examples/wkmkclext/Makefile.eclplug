@@ -2,36 +2,36 @@
 
 include Makefile
 
-all_eclext: /tmp/lib64/wkeclext.so /tmp/lib64/wkeclext-simple.so
+all_eclext: $(OBJDIR)/lib64/wkeclext.so $(OBJDIR)/lib64/wkeclext-simple.so
 
 wkeclext-check-init.o: wkeclext-check-init.c
 	gcc -o $@ -c $^ -ggdb -fPIC -DPIC $(shell $(pkg_config_cmd) --cflags ecl-1 eclplug-1 gmodule-2.0)
 
 CLEANOBJ += wkeclext-check-init.o
 
-/tmp/libwkeclext-library.so: $(LISP)
+$(OBJDIR)/libwkeclext-library.so: $(LISP)
 	ecl --norc \
 		-eval '(setq *features* (delete :wkmkclext-simple *features*))' \
-		-eval '(ensure-directories-exist "/tmp/ecl-tmp/" :verbose t)' \
+		-eval '(ensure-directories-exist "$(OBJDIR)/ecl-tmp/" :verbose t)' \
 		-eval '(load "sample-mkclrc.lisp")' \
 		-eval '(load "wkmkclext.system")' \
 		-eval '(make:compile-system :wkmkclext :compile-during-load t :force nil)' \
 		-eval '(let ((make::*operations-propagate-to-subsystems* t) (make::*ecl-compile-file-system-p* t)) (make::compile-system :wkmkclext :compile-during-load t :force nil))' \
-		-eval '(make::mklib :wkmkclext :ecl-build-type :shared-library :defaults #p"/tmp/ecl-tmp/" :init-function-name "init_wkeclext")' \
+		-eval '(make::mklib :wkmkclext :ecl-build-type :shared-library :defaults #p"$(OBJDIR)/ecl-tmp/" :init-function-name "init_wkeclext")' \
 		-eval '(ext:quit)'
-	mv -fv /tmp/ecl-tmp/libwkmkclext-library.so $@
+	mv -fv $(OBJDIR)/ecl-tmp/libwkmkclext-library.so $@
 
-/tmp/lib64/wkeclext.so: /tmp/libwkeclext-library.so wkeclext-check-init.o
-	mkdir -pv /tmp/lib64
+$(OBJDIR)/lib64/wkeclext.so: $(OBJDIR)/libwkeclext-library.so wkeclext-check-init.o
+	mkdir -pv $(OBJDIR)/lib64
 	gcc -o $@ -shared $^ $(shell $(pkg_config_cmd) --libs ecl-1 eclplug-1 gmodule-2.0)
 
-CLEANOBJ += /tmp/lib64/wkeclext.so /tmp/libwkeclext-library.so
+CLEANOBJ += $(OBJDIR)/lib64/wkeclext.so $(OBJDIR)/libwkeclext-library.so
 
 wkeclext-simple.o: wkext-simple.c
 	gcc -c -o $@ $^ -ggdb $(shell $(pkg_config_cmd) --cflags ecl-1 eclplug-1 webkit2gtk-web-extension-4.0) -fPIC -DPIC -DWK_ECL
 
-/tmp/lib64/wkeclext-simple.so: wkeclext-simple.o wkeclext-check-init.o
-	mkdir -pv /tmp/lib64
+$(OBJDIR)/lib64/wkeclext-simple.so: wkeclext-simple.o wkeclext-check-init.o
+	mkdir -pv $(OBJDIR)/lib64
 	gcc -o $@ -shared $^ $(shell $(pkg_config_cmd) --libs ecl-1 eclplug-1 webkit2gtk-web-extension-4.0)
 
-CLEANOBJ += /tmp/lib64/wkeclext-simple.so wkeclext-simple.o
+CLEANOBJ += $(OBJDIR)/lib64/wkeclext-simple.so wkeclext-simple.o
