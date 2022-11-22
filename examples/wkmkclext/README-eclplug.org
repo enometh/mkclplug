@@ -33,5 +33,7 @@ ln -sv ../lib64/wkeclext-simple.so /tmp/wkextdir
 
 G_MESSAGES_DEBUG=all \
 WEBKIT_EXT_DIR=/tmp/wkextdir minibrowser about:blank &
+
+G_MESSAGES_DEBUG=all ./gmodule-test /tmp/lib64/wkeclext-simple.so &
 #+END_SRC
 

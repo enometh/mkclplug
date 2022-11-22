@@ -113,5 +113,5 @@ mkcl -load ../wkmkclext/sample-mkclrc.lisp -load foo-config.lisp -load /dev/shm/
 ldd /tmp/libfoo-library.so
 ldd /tmp/lib64/foo.so
 LD_DEBUG=all
-../wkmkclext/main /tmp/lib64/foo.so &
+../wkmkclext/gmodule-test /tmp/lib64/foo.so &
 ||#
