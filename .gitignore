@@ -1,0 +1,8 @@
+*.o
+*.a
+*.lo
+*.so
+.gdb*
+*[nN][oO][Tt][Ee][sS]*
+.gitignore
+ATTIC
