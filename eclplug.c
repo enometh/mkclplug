@@ -197,8 +197,12 @@ ecl_initialize_boot (char *app)
   g_message ("initializing app %s", app);
   stashed_appname = strdup (app);
 
-  char *argv[] = { app, 0 };
+  char **argv = (char **) g_malloc0((sizeof (char *)) * 2);
+  argv[0] = stashed_appname;
+
   stashed_env = cl_boot (1, argv);
+  ecl_initialize_write_lisp_backtrace ();
+
   // atexit(cl_shutdown);
 
   ecl_initialize_disable_fpe ();
