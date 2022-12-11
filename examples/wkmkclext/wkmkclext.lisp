@@ -13,6 +13,8 @@
 
 (defvar *webext* (gir:require-namespace "WebKit2WebExtension"))
 
+(defvar $this-extension nil)
+
 (cffi:defcallback (webkit-web-extension-initialize
 		   #-wkmkclext-simple :export-p
 		   #-wkmkclext-simple t)
@@ -21,11 +23,14 @@
   (format t "Now playing: WebKitWebExtensionIntialize...~&")
   (let ((gobject (gir::build-object-ptr (gir:nget *webext* "WebExtension")
 					WebKitWebExtension)))
+    (setq $this-extension gobject)
     (gir:connect gobject "page-created"
 		 #'(lambda (WebKitWebExtension WebKitWebPage)
 		     (when (fboundp 'on-page-created)
 		       (funcall 'on-page-created
-				WebKitWebExtension WebKitWebPage))))))
+				WebKitWebExtension WebKitWebPage))))
+    (load (merge-pathnames "wkmkclext-dbus-backdoor.lisp"
+			   cl-user::*wkmkclext-source-dir*))))
 
 #+wkmkclext-simple
 (cffi:foreign-funcall "register_init1" :pointer
