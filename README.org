@@ -37,6 +37,10 @@ ln -sv `pwd`/mkclplugtest_initrc.lisp ~/.config/mkclplugtest/initrc.lisp
 ** Examples
 [[./examples][examples]]
 
+#+BEGIN_SRC shell
+PKG_CONFIG_PATH=$(pwd) make -fMakefile libmkclplug.so &
+PKG_CONFIG_PATH=$(pwd) make install &
+#+END_SRC shell
 
 * EOF
 #+BEGIN_EXAMPLE
