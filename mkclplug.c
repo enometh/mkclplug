@@ -200,7 +200,10 @@ mkcl_initialize_boot (char *app)
   g_message("initializing app %s", app);
   stashed_appname = strdup(app);
 
-  char *argv[] = { app, 0 };
+
+  char **argv = g_malloc0(sizeof (char *) * 2);
+  argv[0] = stashed_appname;
+
   MKCL = mkcl_boot (1, argv, NULL);
 
   if (env == NULL)
