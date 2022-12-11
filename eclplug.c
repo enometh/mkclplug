@@ -13,14 +13,14 @@ ecl_initialize_disable_fpe ()
 }
 
 static void
-ecl_initialize_write_lisp_backtrace (cl_object condition)
+ecl_initialize_write_lisp_backtrace ()
 {
   static int initialized = 0;
   if (!initialized)
     {
       initialized = 1;
       cl_eval (ecl_read_from_cstring ("\
-(defun write-lisp-backtrace (condition)\
+(defun cl-user::write-lisp-backtrace (condition)\
   (let* ((top (si:ihs-top))\
 	 (stream *error-output*)\
          (repeats top)\

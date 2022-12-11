@@ -9,6 +9,14 @@ eclplug.lo: eclplug.c
 libeclplug.so:  monitorlib.lo eclplug.lo
 	$(CC) -shared -o $@ $^
 
+eclplugtest: eclplugtest.o libeclplug.so
+	$(CC) -o $@ $^ $(LIBS) \
+		 $(shell $(pkg_config_cmd) --libs eclplug-1)
+
+eclplugtest.o: eclplugtest.c
+	$(CC) -c -o $@ $^ $(CFLAGS) \
+		$(shell $(pkg_config_cmd) --cflags eclplug-1)
+
 clean_eclplug:
 	rm -fv eclplug.lo libeclplug.so
 
