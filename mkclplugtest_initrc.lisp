@@ -4,7 +4,7 @@
 (progn
   (require 'cmp)
   ;; set up the desired environment
-  (load "~/.mkcl")
+  (load  #+mkcl "~/.mkcl" #+ecl  "~/.eclrc")
   (require 'cffi))
 
 #+nil
@@ -21,8 +21,11 @@
 ;; (argv 0) doesn't work for some reason
 ||#
 
-(defun runtime-initrc-path (&key (pid (mkcl:getpid))
-			    (uid (mkcl:getuid))
+(defun getpid-1 () (#+mkcl mkcl:getpid #+ecl ext:getpid))
+(defun getuid-1 () (#+mkcl mkcl:getuid #+ecl ext:getuid))
+
+(defun runtime-initrc-path (&key (pid (getpid-1))
+			    (uid (getuid-1))
 			     (app-name
 			      (cffi:foreign-string-to-lisp
 			       (cffi:mem-ref
@@ -72,7 +75,7 @@
 	    (load "~/sly-config")
 	    (require 'slynk)
 	    (defvar +pid-start+ 4005)
-	    (defvar *slynk-pid* (mkcl::getpid))
+	    (defvar *slynk-pid* (getpid-1))
 	    (defvar *slynk-port* (+ *slynk-pid* +pid-start+))
 	    (slynk::create-server :port *slynk-port*)
 	    (setf (slynk::debug-on-slynk-error) t)
