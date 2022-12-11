@@ -1,5 +1,6 @@
 ; wkmkclext/dbus-backdoor.lisp
 (in-package "WKMKCLEXTEXT")
+(require 'girlib)
 
 (defvar $eval-server
   (let* ((pid (gir-lib::getpid))
