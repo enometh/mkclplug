@@ -7,6 +7,7 @@
 #include <mkclplug.h>
 void init_wkmkclext(MKCL, mkcl_object cblock, mkcl_object fasl_filename)
 {
+  g_setenv("WKEXTSIMPLE", "1", TRUE);
 }
 #ifdef WK_ECL
 #error define one of WK_MKCL or WK_ECL
@@ -17,6 +18,7 @@ void init_wkmkclext(MKCL, mkcl_object cblock, mkcl_object fasl_filename)
 #include <eclplug.h>
 void init_wkeclext(cl_object entry)
 {
+  g_setenv("WKEXTSIMPLE", "1", TRUE);
 }
 #ifdef WK_MKCL
 #error define one of WK_MKCL or WK_ECL
