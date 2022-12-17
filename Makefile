@@ -9,7 +9,7 @@ LIBDIR ?= $(PREFIX)/lib64
 PKGCONFDIR ?= $(LIBDIR)/pkgconfig
 
 #INSTALL ?= cp -apfv
-INSTALL ?= rsync -aizHuOJX --inplace
+INSTALL ?= rsync -aivzHuOJX --inplace
 
 libmkclplug.a: monitorlib.o mkclplug.o
 	ar crv $@ $^
