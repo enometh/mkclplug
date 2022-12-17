@@ -46,7 +46,7 @@ mkclplugtest.o: mkclplugtest.c
 		$(shell $(pkg_config_cmd) --cflags mkclplug-1)
 
 libmkclplug.so: monitorlib.lo mkclplug.lo
-	$(CC) -shared -o $@ $^
+	$(CC) -shared -o $@ $^ $(shell $(pkg_config_cmd) --libs glib-2.0 mkcl-1)
 
 mkclplug.lo: mkclplug.c
 	$(CC) -c -o $@ $^ $(CFLAGS) \
