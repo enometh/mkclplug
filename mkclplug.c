@@ -294,3 +294,8 @@ mkcl_repl ()
     /* some other late cleanup should go here. */
   } MKCL_CATCH_ALL_END;
 }
+
+void mkcl_eval_single(const char *code)
+{
+  mkcl_eval(code);
+}
