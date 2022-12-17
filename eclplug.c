@@ -251,3 +251,8 @@ ecl_initialize_module (char *app, void (*entry_point) (cl_object))
   ecl_init_module (NULL, entry_point);
   ecl_load_and_monitor_initrc ();
 }
+
+void ecl_eval_single(const char *code)
+{
+  ecl_eval(code);
+}
