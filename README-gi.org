@@ -1,0 +1,50 @@
+*  generate gir and typelib for mkclplug (and eclplug)
+
+file:///7/gtk/gobject-introspection/docs/website/_build/index.html
+
+** generate MKCLPlug-0.1.gir
+#+begin_src sh
+PKG_CONFIG_PATH=$(pwd) \
+g-ir-scanner --warn-all --strict --format=gir \
+--include=GLib-2.0 \
+--add-include-path=/usr/local/include/ \
+--library-path=/usr/local/lib64 \
+-I . \
+--c-include=mkclplug.h \
+-n MKCLPlug \
+--no-libtool \
+--nsversion=0.1 \
+--accept-unprefixed \
+--output=/tmp/MKCLPlug-0.1.gir \
+--pkg=mkcl-1 \
+--pkg-export=mkclplug-1 \
+--verbose \
+--library=libmkclplug.so \
+mkclplug.c monitorlib.c mkclplug.h \
+&
+#+end_src
+
+
+** generate MKCLPlug-0.1.typelib
+#+begin_src sh
+PKG_CONFIG_PATH=$(pwd) \
+g-ir-compiler --verbose \
+--shared-library=libmkclplug \
+--output=/tmp/MKCLPlug-0.1.typelib \
+/tmp/MKCLPlug-0.1.gir &
+#+end_src
+
+** install locally
+#+begin_src
+rsync -iu --inplace -avzH /tmp/MKCLPlug-0.1.gir ~/root/usr/share/gir-1.0/
+rsync -iu --inplace -avzH /tmp/MKCLPlug-0.1.typelib ~/root/usr/lib64/girepository-1.0/
+#+end_src
+
+** patch rpath
+#+begin_src
+patchelf --help
+patchelf --print-rpath /usr/local
+ldd /usr/local/lib64/libmkclplug.so
+rm -fv libmkclplug.so
+make -f Makefile libmkclplug.so
+#+end_src
