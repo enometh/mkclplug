@@ -13,11 +13,15 @@
    "WEB-CONTEXT"
    "WEB-EXTENSION"
    "WEB-PAGE"
-   "DEFINE-USER-MESSAGE-HANDLER-FOR"))
+   "DEFINE-USER-MESSAGE-HANDLER-FOR"
+   "EVAL-JAVASCRIPT-SYNC"
+   "EVAL-JAVASCRIPT"
+   "$JS-RESULT"))
 (in-package "WKMKCLEXTLIB")
 
 (defvar *wk* (gir:require-namespace "WebKit2" "4.1"))
 (defvar *wkext* (gir:require-namespace "WebKit2WebExtension" "4.1"))
+(defvar *jsc* (gir:require-namespace "JavaScriptCore" "4.1"))
 
 (defvar $user-message-receivers
   (list (nget *wk* "WebContext")
@@ -84,3 +88,115 @@
 
 #+nil
 (define-user-message-handler-for web-view)
+
+
+;;; ----------------------------------------------------------------------
+;;;
+;;;
+;;;
+
+#||
+(get-method-desc (nget *wk* "WebView") "run_javascript")
+;; => #F<run_javascript(#V<script: STRING> #V<cancellable: #O<Cancellable>>
+;;                   #V<callback: POINTER> #V<user_data: POINTER>): (#V<RETURN-VALUE: VOID>)>
+
+(get-method-desc (nget *wk* "WebView") "run_javascript_in_world")
+;; => #F<run_javascript_in_world(#V<script: STRING> #V<world_name: STRING>
+;;                           #V<cancellable: #O<Cancellable>>
+;;                           #V<callback: POINTER> #V<user_data: POINTER>): (#V<RETURN-VALUE: VOID>)>
+
+(get-method-desc (nget *wk* "WebView") "run_javascript_finish")
+;; => #F<run_javascript_finish(#V<result: I<AsyncResult>>): (#V<RETURN-VALUE: #S<JavascriptResult>>)>
+
+(get-method-desc (nget *wk* "JavascriptResult")"get_js_value")
+;; => #F<get_js_value(): (#V<RETURN-VALUE: #O<Value>>)>
+
+(list-methods-desc (nget *jsc* "Value"))
+(list-methods-desc (nget *jsc* "Context"))
+||#
+
+(defvar $js-result nil)
+
+(defun eval-javascript-finish (source async-result)
+  (let ((result
+	 (handler-case (invoke (source "run_javascript_finish")
+			 async-result)
+	   (error (c)
+	     (g-warning "Error Executing javacript")
+	     (cl-user::write-lisp-backtrace c)
+	     nil))))
+    (when result
+      (g-message "result = ~S" result)
+      (let* ((value (invoke (result "get_js_value")))
+	     (str-value (progn
+			  (g-message "value = ~S" value)
+			  (invoke (value "to_string"))))
+	     (context (invoke (value "get_context")))
+	     (exception (invoke (context "get_exception"))))
+	(setq $js-result value)
+	(cond (exception
+	       (g-warning "Error Running Javascript: ~a"
+			  (invoke (exception "get_message"))))
+	      (t (g-message "Script result: ~a~&" str-value)))))))
+
+(defvar $ejsf-cb (gir-lib::register-callback #'eval-javascript-finish))
+
+#+nil
+(gir-lib::unregister-callback $ejsf-cb)
+
+(defun eval-javascript (web-view string)
+  (let* ((settings (invoke (web-view "get_settings")))
+	 (orig (property settings "enable-javascript")))
+    (unless orig
+      (setf (property settings "enable-javascript") t))
+    (invoke (web-view "run_javascript")
+      string
+      nil
+      (cffi:callback gir-lib::funcall-object-async-ready-callback)
+      $ejsf-cb)
+    (unless orig
+      (setf (property settings "enable-javascript") nil))))
+
+(defun eval-javascript-sync (web-view string)
+  (let* ((contents)
+	 (main-loop (invoke (*glib* "MainLoop" "new") nil nil))
+	 (settings (invoke (web-view "get_settings")))
+	 (orig (property settings "enable-javascript")))
+    (flet ((finish (source async-result)
+	     (let ((result
+		    (handler-case (invoke (source "run_javascript_finish")
+					  async-result)
+		      (error (c)
+			(g-warning "Error Executing javacript")
+			(cl-user::write-lisp-backtrace c)
+			nil))))
+	       (when result
+		 (g-message "result = ~S" result)
+		 (let* ((value (invoke (result "get_js_value")))
+			(str-value (progn
+				     (g-message "value = ~S" value)
+				     (invoke (value "to_string"))))
+			(context (invoke (value "get_context")))
+			(exception (invoke (context "get_exception"))))
+		   (cond (exception
+			  (g-warning "Error Running Javascript: ~a"
+				     (invoke (exception "get_message"))))
+			 (t (setq contents result)
+			    (g-message "Script result: ~a~&" str-value))))))
+	     (invoke (main-loop "quit"))))
+
+      (gir-lib:with-registered-callback (loc)
+	#'finish
+	(unless orig
+	  (setf (property settings "enable-javascript") t))
+	(invoke (web-view "run_javascript")
+		string
+		nil
+		(cffi:callback gir-lib::funcall-object-async-ready-callback)
+		loc)
+	(unless orig
+	  (setf (property settings "enable-javascript") nil))
+	(invoke (main-loop "run")))
+      contents)))
+
+
