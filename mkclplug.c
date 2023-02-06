@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+#include <signal.h>
 #include <mkcl/mkcl.h>
 #include <mkcl/internal.h>
 #include <glib.h>
@@ -189,6 +191,30 @@ loadlispfile (char *lispinitfile)
 }
 
 static void
+stash_or_restore_signals(int stash)
+{
+  static int sigs[] = { 10 };
+  static sighandler_t stashed[1024];
+  int i, sig, len;
+  len = sizeof (sigs)/sizeof(sigs[0]);
+  if (stash) {			//stash
+    for (i = 0; i < len; i++) {
+      sig = sigs[i];
+      g_assert (sig < 1024);
+      stashed[sig] = signal(sig , SIG_IGN);
+//      g_message("stash_or_restore_signals: stashing signal %d = %p", sig, stashed[sig]);
+    }
+  } else {			//restore
+    for (i = 0; i < len; i++) {
+      sig = sigs[i];
+      g_assert (sig < 1024);
+      signal(sig , stashed[sig]);
+//      g_message("stash_or_restore_signals: restored signal %d = %p", sig, stashed[sig]);
+    }
+  }
+}
+
+static void
 mkcl_initialize_boot (char *app)
 {
   if (stashed_env)
@@ -196,6 +222,8 @@ mkcl_initialize_boot (char *app)
       g_error ("mkcl_initialize: ealready");
       return;
     }
+
+  stash_or_restore_signals(1);
 
   g_message("initializing app %s", app);
   stashed_appname = strdup(app);
@@ -205,6 +233,8 @@ mkcl_initialize_boot (char *app)
   argv[0] = stashed_appname;
 
   MKCL = mkcl_boot (1, argv, NULL);
+
+  stash_or_restore_signals(0);
 
   if (env == NULL)
     {
