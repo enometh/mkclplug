@@ -19,6 +19,8 @@ g-ir-scanner --warn-all --strict --format=gir \
 --pkg=mkcl-1 \
 --pkg-export=mkclplug-1 \
 --verbose \
+--warn-all \
+--accept-unprefixed \
 --library=libmkclplug.so \
 mkclplug.c monitorlib.c mkclplug.h \
 &
