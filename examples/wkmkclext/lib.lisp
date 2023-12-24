@@ -8,7 +8,7 @@
 ;;;
 (defpackage "WKMKCLEXTLIB"
   (:use "CL" "GIR-LIB" "GIR")
-  (:export "*WK*" "*WKEXT*"
+  (:export
    "WEB-VIEW"
    "WEB-CONTEXT"
    "WEB-EXTENSION"
@@ -19,16 +19,11 @@
    "$JS-RESULT"))
 (in-package "WKMKCLEXTLIB")
 
-(defvar *wk* (gir:require-namespace "WebKit2" "4.1"))
-(defvar *wkext* (gir:require-namespace "WebKit2WebExtension" "4.1"))
-(defvar *jsc* (gir:require-namespace "JavaScriptCore" "4.1"))
-
 (defvar $user-message-receivers
   (list (nget *wk* "WebContext")
 	(nget *wk* "WebView")
 	(nget *wkext* "WebExtension")
 	(nget *wkext* "WebPage")))
-
 
 #+nil
 (gir::info-get-name(gir::info-of (nget *wk* "WebContext")))
@@ -124,6 +119,7 @@
 	   (error (c)
 	     (g-warning "Error Executing javacript")
 	     (cl-user::write-lisp-backtrace c)
+	     (g-warning "condition  = ~A" c)
 	     nil))))
     (when result
       (g-message "result = ~S" result)
