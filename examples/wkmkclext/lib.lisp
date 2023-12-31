@@ -132,7 +132,7 @@
 	(cond (exception
 	       (g-warning "Error Running Javascript: ~a"
 			  (invoke (exception "get_message"))))
-	      (t (g-message "Script result: ~a~&" str-value)))))))
+	      (t (g-message "Script result: ~a bytes~&" (length str-value))))))))
 
 (defvar $ejsf-cb (gir-lib::register-callback #'eval-javascript-finish))
 
