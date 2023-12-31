@@ -197,3 +197,20 @@
       contents)))
 
 
+
+;;; ----------------------------------------------------------------------
+;;;
+;;;
+;;;
+(defun jsc-value-get-type (obj)
+  (macrolet ((gencond (obj)
+	       (check-type obj symbol)
+	       (let ((types '(array array_buffer boolean constructor function null number object string typed_array undefined)))
+		 (loop for sym in types
+		       collect `((invoke (,obj ,(concatenate 'string "is_" (string-downcase sym))))
+				 ',sym)
+		       into clauses
+		       finally (return `(cond ,@clauses))))))
+    (gencond obj)))
+
+(export 'jsc-value-get-type)
