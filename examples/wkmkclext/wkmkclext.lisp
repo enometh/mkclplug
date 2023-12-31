@@ -15,6 +15,23 @@
 
 (defvar $this-extension nil)
 
+(defvar $initialization-hooks nil)
+
+(defun init-page-created-callback ()
+  (assert $this-extension)
+  (gir:connect $this-extension "page-created"
+	       #'(lambda (WebKitWebExtension WebKitWebPage)
+		   (when (fboundp 'on-page-created)
+		     (funcall 'on-page-created
+			      WebKitWebExtension WebKitWebPage)))))
+(defun init-dbus-backdoor ()
+  (assert $this-extension)
+  (load (merge-pathnames "wkmkclext-dbus-backdoor.lisp"
+			 cl-user::*wkmkclext-source-dir*)))
+
+(push #'init-page-created-callback $initialization-hooks)
+(push #'init-dbus-backdoor $initialization-hooks)
+
 (cffi:defcallback (webkit-web-extension-initialize
 		   #-wkmkclext-simple :export-p
 		   #-wkmkclext-simple t)
@@ -24,13 +41,7 @@
   (let ((gobject (gir::build-object-ptr (gir:nget *webext* "WebExtension")
 					WebKitWebExtension)))
     (setq $this-extension gobject)
-    (gir:connect gobject "page-created"
-		 #'(lambda (WebKitWebExtension WebKitWebPage)
-		     (when (fboundp 'on-page-created)
-		       (funcall 'on-page-created
-				WebKitWebExtension WebKitWebPage))))
-    (load (merge-pathnames "wkmkclext-dbus-backdoor.lisp"
-			   cl-user::*wkmkclext-source-dir*))))
+    (map nil (lambda (hook) (funcall hook)) $initialization-hooks)))
 
 #+wkmkclext-simple
 (cffi:foreign-funcall "register_init1" :pointer
