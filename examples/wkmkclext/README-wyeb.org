@@ -1,0 +1,147 @@
+* Notes on interaction with (patched) Wyeb
+** overview of the startup process.
+*** main
+wyeb compiled with -DMKCLPLUG will initialize an app named "mkclplug".
+make sure ~/.config/mkclplug/initrc.lisp.
+ls -l  ~/.config/mkclplug/initrc.lisp
+~/.config/mkclplug/initrc.lisp -> ~/cl/mkclplug/mkclplugtest_initrc.lisp
+This sets up the file monitor at the file
+/dev/shm/500-mkclplug-runtime/$(pidof wyeb).lisp
+and loads it when it exists, and when it changes.
+*** ext
+wyeb is compiled with -DDEBUG, follow instructions in
+README-eclplug.org to build /tmp/wkextdir/wkeclext.so, and symlink
+this to the same location as ext.so
+ls -l /7/gtk/wyeb/build.amd64/wkeclext.so
+/7/gtk/wyeb/build.amd64/wkeclext.so -> /tmp/wkextdir/wkeclext.so
+when webkit loads this extension,
+this initializes an app called "wkeclext" which loads the corresponding initrc
+ls -l ~/.config/wkeclect/initrc.lisp
+~/.config/wkeclect/initrc.lisp -> ~/cl/mkclplug/examples/wkmkclext/wkmkclext_initrc.lisp
+checked in to this repository. this local-init.lisp in the same directory
+which load wkmkclext.system, and initializes the extension.
+
+on initialization the hooks in wkmkclext.lisp run, and one of these
+loads the girlib dbus backdoor, and the web extension process listens
+on dbus to evaluate lisp.
+
+
+** connecting to the browser
+*** main
+start slynk by via the init file monitoring mechism of the "mkclplug"
+app and connect to it on port 4005 from your emacs
+#+begin_src
+# first time
+mkdir -pv /dev/shm/$(id -u)-mkclplug-runtime
+pidof wyeb
+echo "(load \"~/cl/sly-config.lisp\")(ignore-errors (slynk-start))" > /dev/shm/$(id -u)-mkclplug-runtime/$(pidof wyeb).lisp
+# and when it changes
+mv -fv /dev/shm/500-mkclplug-runtime/* /dev/shm/500-mkclplug-runtime/$(pidof wyeb).lisp
+# M-x sly-connect
+#+end_src
+*** ext
+each webprocess starts a dbus eval server
+#+begin_example
+busctl --user 2>/dev/null | grep code.girlib.wkmkclext | read busname pid name user dest unit session description ; echo  busctl --user introspect $busname  "/code/wkmkclext/$pid" code.girlib.EvalServer
+#+end_example
+we can use emacs to talk to it via org-babel
+#+begin_src elisp
+;; dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep code.girlib.wkmkclext
+;; busctl --user 2>/dev/null | grep code.girlib.wkmkclext
+(setq $exts
+      (cl-remove-if-not (lambda (s) (cl-search "code.girlib.wkmkclext.id" s))
+			(dbus-call-method :session
+					  "org.freedesktop.DBus"
+					  "/org/freedesktop/DBus"
+					  "org.freedesktop.DBus"
+					  "ListNames")))
+(setq $ext (car $exts))
+
+(defun extract-pid (string)
+  (and (string-match "code.girlib.wkmkclext.id\\([0-9]+\\)" string)
+       (match-string 1 string)))
+
+(defun eval-in-wyeb-ext (string dest)
+  (let ((pid (extract-pid dest)))
+    (dbus-call-method :session dest
+		      (format "/code/wkmkclext/%s" pid)
+		      "code.girlib.EvalServer"
+		      "Eval"
+		      string)))
+
+;; (eval-in-wyeb-ext "(+ 1 2)" $ext)
+
+;; define a babel language `wyeb-ext' that executes a code block in
+;; the default browser extension via dbus
+
+(defvar org-babel-default-header-args:wyeb-ext '())
+(defvar org-babel-header-args:wyeb-ext '())
+					;(package . any)
+(defun org-babel-execute:wyeb-ext (body params)
+  "BODY is lisp code which is sent to the extension."
+  (let* ((result-params (cdr (assq :result-params params)))
+	 ;; Fixme - eval-in-wyeb-ext returns 4 values
+	 (result (pp (eval-in-wyeb-ext body $ext))))
+    (org-babel-result-cond result-params
+	(let ((print-level nil)
+              (print-length nil))
+          (if (or (member "scalar" result-params)
+                  (member "verbatim" result-params))
+              (format "%S" result)
+            (format "%s" result)))
+	(org-babel-reassemble-table
+	 result
+         (org-babel-pick-name (cdr (assq :colname-names params))
+                              (cdr (assq :colnames params)))
+         (org-babel-pick-name (cdr (assq :rowname-names params))
+                              (cdr (assq :rownames params)))))))
+#+end_src
+
+now that we've defined the language
+
+#+begin_src wyeb-ext
+(+ 1 2)
+#+end_src
+
+#+RESULTS:
+: (t "3" "" "")
+
+** wyeb user
+#+begin_src lisp
+(in-package "CL-USER")
+(unless (featurep :wk)
+  (pushnew :wk *features*))
+(require 'girlib)
+(defpackage "WYEB-USER" (:use "CL" "GIR-LIB" "GIR"))
+(in-package "WYEB-USER")
+(defvar $wins (gir::build-struct-ptr
+	       (nget *glib* "PtrArray")
+	       (cffi:mem-ref (cffi:foreign-symbol-pointer "wins")
+			     :pointer)))
+(defun lastwin ()
+  "#define LASTWIN (wins && wins->len ? (Win *)*wins->pdata : NULL)"
+  (and (> (field $wins "len") 0)
+       (cffi:mem-ref (field $wins "pdata") :pointer)))
+
+(require 'girlib-wk)
+
+(defun wv ()
+ "current wyeb webview"
+ (gir:build-object-ptr (nget *wk* "WebView")  (cffi:mem-aref (lastwin) :pointer 1)))
+
+;; we can't use gir-lib:with-gtk-thread because webkit manages the
+;; glib main loop, but all webview operations have to happen on the
+;; own (main) thread.
+(gir-lib::block-idle-add
+  (gir:invoke ((wv) "load_uri") "http://localhost:3000/custom_types/structs.html"))
+
+#+end_src
+
+* Examples
+*** getting the dom
+#+begin_src wyeb-ext
+(+ 2 3)
+#+end_src
+
+#+RESULTS:
+: (t "5" "" "")
