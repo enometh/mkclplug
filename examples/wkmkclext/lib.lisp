@@ -122,7 +122,6 @@
 	     (g-warning "condition  = ~A" c)
 	     nil))))
     (when result
-      (g-message "result = ~S" result)
       (let* ((value (invoke (result "get_js_value")))
 	     (str-value (progn
 			  (g-message "value = ~S" value)
