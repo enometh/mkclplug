@@ -19,6 +19,11 @@
    "$JS-RESULT"))
 (in-package "WKMKCLEXTLIB")
 
+(require 'girlib-wk)
+#+nil
+(mapcar (lambda (x) (unintern x "WKMKCLEXTLIB"))
+	'(*wk* *wkext* *jsc*))
+
 (defvar $user-message-receivers
   (list (nget *wk* "WebContext")
 	(nget *wk* "WebView")
@@ -217,4 +222,18 @@
 		       finally (return `(cond ,@clauses))))))
     (gencond obj)))
 
-(export 'jsc-value-get-type)
+(defun jsc-value-get-object-class-name (obj)
+  (when (eq 'object (jsc-value-get-type obj))
+    (when (invoke (obj "object_has_property") "constructor")
+      (let ((con (invoke (obj "object_get_property") "constructor")))
+	(when (invoke (con "object_has_property") "name")
+	  (let ((nam (invoke (con "object_get_property") "name")))
+	    (invoke (nam "to_string"))))))))
+
+(export '(jsc-value-get-type jsc-value-get-object-class-name))
+
+
+;;; ----------------------------------------------------------------------
+;;;
+;;;
+;;;
