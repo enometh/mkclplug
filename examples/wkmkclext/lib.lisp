@@ -168,9 +168,11 @@
 			(cl-user::write-lisp-backtrace c)
 			nil))))
 	       (when result
+		 #+nil
 		 (g-message "result = ~S" result)
 		 (let* ((value (invoke (result "get_js_value")))
 			(str-value (progn
+				     #+nil
 				     (g-message "value = ~S" value)
 				     (invoke (value "to_string"))))
 			(context (invoke (value "get_context")))
@@ -179,6 +181,8 @@
 			  (g-warning "Error Running Javascript: ~a"
 				     (invoke (exception "get_message"))))
 			 (t (setq contents result)
+			    (g-message "script result length = ~d~&" (length str-value))
+			    #+nil
 			    (g-message "Script result: ~a~&" str-value))))))
 	     (invoke (main-loop "quit"))))
 
