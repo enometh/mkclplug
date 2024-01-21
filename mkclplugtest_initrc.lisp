@@ -5,7 +5,8 @@
   (require 'cmp)
   ;; set up the desired environment
   (load  #+mkcl "~/.mkcl" #+ecl  "~/.eclrc")
-  (require 'cffi))
+  (require 'cffi)
+  (require 'cffi-libffi))
 
 #+nil
 (progn
@@ -39,7 +40,7 @@
      (handler-bind ((error (lambda (error)
 			      (write-lisp-backtrace error)
 			      (return))))
-       (load path))))
+       (and (probe-file path) (load path)))))
 
 (cffi:defcfun (load-and-monitor "load_and_monitor") :void
     (lispfilepath :pointer)
