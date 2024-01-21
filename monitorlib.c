@@ -17,10 +17,16 @@ monitorcb (GFileMonitor * gm, GFile * file, GFile * other_file,
   if (event != G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT &&
       event != G_FILE_MONITOR_EVENT_DELETED)
     return;
+  const char *f = g_file_peek_path(file);
+  g_message("MONITORCB  tmp->filepath = %s, GFile.path = %s",
+	    tmp->filepath, f);
   g_return_if_fail (tmp);
   g_return_if_fail (tmp->filepath);
-  if (tmp->watchedcb)
-    tmp->watchedcb (tmp->filepath);
+  if (tmp->watchedcb) {
+    if (strcmp (f,tmp->filepath) == 0) {
+      tmp->watchedcb (tmp->filepath);
+    }
+}
 }
 
 static struct watched *
@@ -98,7 +104,6 @@ load_and_monitor (char *lispfilepath, watchedcb_t watchedcb, gboolean unwatch)
 
   if (unwatch)
     {
-      char *key = realfilepath ? : lispfilepath;
       struct watched *tmp = g_hash_table_lookup (watched, key);
       if (!tmp)
 	{
@@ -109,14 +114,15 @@ load_and_monitor (char *lispfilepath, watchedcb_t watchedcb, gboolean unwatch)
 	  g_debug ("load_and_monitor_unwatch(%s)\n", key);
 	  unmonitor (tmp);
 	  g_hash_table_remove (watched, key);
-	  g_free (tmp);
 	}
       if (realfilepath)
 	g_free (realfilepath);
+      if (tmp)
+	g_free(tmp);
       return;
     }
   if (!watched)
-    watched = g_hash_table_new (g_str_hash, g_str_equal);
+    watched = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
   struct watched *tmp = g_hash_table_lookup (watched, key);
   if (tmp)
     {
@@ -127,7 +133,7 @@ load_and_monitor (char *lispfilepath, watchedcb_t watchedcb, gboolean unwatch)
       tmp = monitor (key, watchedcb);
       if (tmp)
 	{
-	  g_hash_table_replace (watched, key, tmp);
+	  g_hash_table_replace (watched, strdup(key), tmp);
 	  if (realfilepath)
 	    {
 	      if (tmp->watchedcb)

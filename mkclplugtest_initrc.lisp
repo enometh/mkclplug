@@ -47,6 +47,9 @@
     (watchedcb :pointer)
     (unwatchp :boolean))
 
+;; madhu 240120 gnome-shell-46.alpha crashes in some gjs libffi stack
+;; frame when the the runtime-initrc-path file or directory appears
+;; for the first time. it works if the file is created first.
 
 (cffi:with-foreign-string (initrc (runtime-initrc-path))
   (load-and-monitor initrc (cffi:callback load-lisp-file)
