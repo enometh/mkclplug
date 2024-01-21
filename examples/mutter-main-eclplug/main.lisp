@@ -2,7 +2,7 @@
 (in-package "GIR-TEST")
 
 (defvar $mutter-libdir
-  (merge-pathnames "usr/lib64/mutter-10"
+  (merge-pathnames "usr/lib64/mutter-14"
 		   (translate-logical-pathname "HOME:root;")))
 
 
@@ -14,7 +14,7 @@
 #+nil
 (list->strings(invoke(*gi-repository* "Repository" "get_search_path")))
 
-(defvar *meta* (require-namespace "Meta" "10"))
+(defvar *meta* (require-namespace "Meta" "14"))
 (defvar *cogl* (require-namespace "Cogl"))
 (defvar *clutter* (require-namespace "Clutter"))
 

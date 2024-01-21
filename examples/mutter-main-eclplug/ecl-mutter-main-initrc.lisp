@@ -8,7 +8,11 @@
 ;;;
 (in-package "CL-USER")
 (format t ";;; Now playing ~S~&" *load-pathname*)
-(pushnew :wk *features*)
+;; (pushnew :wk *features*)
+#+ecl
+(progn
+(load "~/.eclrc")
+(slynk-start))
 
 #||
 (defvar *local-init-loaded* nil)
