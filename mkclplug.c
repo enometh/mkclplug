@@ -219,7 +219,7 @@ mkcl_initialize_boot (char *app)
 {
   if (stashed_env)
     {
-      g_error ("mkcl_initialize: ealready");
+      g_message ("mkcl_initialize: ealready");
       return;
     }
 

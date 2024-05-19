@@ -190,7 +190,7 @@ ecl_initialize_boot (char *app)
 
   if (stashed_env)
     {
-      g_error ("ecl_initialize: ealready");
+      g_message ("ecl_initialize: ealready");
       return;
     }
 
