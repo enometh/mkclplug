@@ -1,8 +1,9 @@
 (in-package "WKMKCLEXTEXT")
 
-(declaim (optimize (debug 0)))
-;; madhu 210502 otherwise our cffi export-p mechanism with mkcl's
-;; c-export-name doesn't work
+;;(declaim (optimize (debug 0))) madhu 210502 otherwise our cffi
+  ;; export-p mechanism with mkcl's c-export-name doesn't work.  madhu
+  ;; 240531 avoid a top level declaim, see with-compilation-unit below
+  ;; or use LOCALLY instead
 
 (defvar +wkmkclext-simple-feature-present-p+ #+wkmkclext-simple t #-wkmkclext-simple nil)
 (eval-when (load eval)
@@ -32,6 +33,9 @@
 (push #'init-page-created-callback $initialization-hooks)
 (push #'init-dbus-backdoor $initialization-hooks)
 
+(with-compilation-unit ()
+  (declaim (optimize (debug 0))
+	   (ftype (function (t) t) webkit-web-extension-initialize))
 (cffi:defcallback (webkit-web-extension-initialize
 		   #-wkmkclext-simple :export-p
 		   #-wkmkclext-simple t)
@@ -41,7 +45,8 @@
   (let ((gobject (gir::build-object-ptr (gir:nget *webext* "WebExtension")
 					WebKitWebExtension)))
     (setq $this-extension gobject)
-    (map nil (lambda (hook) (funcall hook)) $initialization-hooks)))
+    (map nil (lambda (hook) (funcall hook)) $initialization-hooks))))
+
 
 #+wkmkclext-simple
 (cffi:foreign-funcall "register_init1" :pointer
