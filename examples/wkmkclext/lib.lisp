@@ -16,7 +16,8 @@
    "DEFINE-USER-MESSAGE-HANDLER-FOR"
    "EVAL-JAVASCRIPT-SYNC"
    "EVAL-JAVASCRIPT"
-   "$JS-RESULT"))
+   "$JS-RESULT"
+   "$JS-VALUE"))
 (in-package "WKMKCLEXTLIB")
 
 (require 'girlib-wk)
@@ -113,27 +114,46 @@
 
 (list-methods-desc (nget *jsc* "Value"))
 (list-methods-desc (nget *jsc* "Context"))
+
+(get-method-desc (nget *wk* "WebView") "evaluate_javascript")
+;; #F<evaluate_javascript(#V<script: STRING> #V<length: INTEGER>
+;;                        #V<world_name: STRING> #V<source_uri: STRING>
+;;                        #V<cancellable: #O<Cancellable>> #V<callback: POINTER>
+;;                        #V<user_data: POINTER>): (#V<RETURN-VALUE: VOID>)>
+
+(get-method-desc (nget *wk* "WebView") "evaluate_javascript_finish")
+;; #F<evaluate_javascript_finish(#V<result: I<AsyncResult>>): (#V<RETURN-VALUE: #O<Value>>)>
+
+
 ||#
 
 (defvar $js-result nil)
 
+(defvar $js-value nil)
+
+(defvar *43-api* t)
+
 (defun eval-javascript-finish (source async-result)
   (let ((result
-	 (handler-case (invoke (source "run_javascript_finish")
-			 async-result)
+	 (handler-case (if *43-api*
+			   (invoke (source "evaluate_javascript_finish")
+			     async-result)
+			   (invoke (source "run_javascript_finish")
+			     async-result))
 	   (error (c)
 	     (g-warning "Error Executing javacript")
 	     (cl-user::write-lisp-backtrace c)
 	     (g-warning "condition  = ~A" c)
 	     nil))))
     (when result
-      (let* ((value (invoke (result "get_js_value")))
+      (let* ((value (if *43-api* result (invoke (result "get_js_value"))))
 	     (str-value (progn
 			  (g-message "value = ~S" value)
 			  (invoke (value "to_string"))))
 	     (context (invoke (value "get_context")))
 	     (exception (invoke (context "get_exception"))))
-	(setq $js-result result)
+	(progn (if (not *43-api*) (setq $js-result result))
+	       (setq $js-value result))
 	(cond (exception
 	       (g-warning "Error Running Javascript: ~a"
 			  (invoke (exception "get_message"))))
@@ -149,11 +169,20 @@
 	 (orig (property settings "enable-javascript")))
     (unless orig
       (setf (property settings "enable-javascript") t))
-    (invoke (web-view "run_javascript")
-      string
-      nil
-      (cffi:callback gir-lib::funcall-object-async-ready-callback)
-      $ejsf-cb)
+    (if *43-api*
+	(invoke (web-view "evaluate_javascript")
+	  string
+	  -1
+	  nil
+	  nil
+	  nil
+	  (cffi:callback gir-lib::funcall-object-async-ready-callback)
+	  $ejsf-cb)
+	(invoke (web-view "run_javascript")
+	  string
+	  nil
+	  (cffi:callback gir-lib::funcall-object-async-ready-callback)
+	  $ejsf-cb))
     (unless orig
       (setf (property settings "enable-javascript") nil))))
 
@@ -166,8 +195,11 @@
 	 (orig (property settings "enable-javascript")))
     (flet ((finish (source async-result)
 	     (let ((result
-		    (handler-case (invoke (source "run_javascript_finish")
-					  async-result)
+		    (handler-case (if *43-api*
+				      (invoke (source "evaluate_javascript_finish")
+					async-result)
+				      (invoke (source "run_javascript_finish")
+					  async-result))
 		      (error (c)
 			(g-warning "Error Executing javacript")
 			(cl-user::write-lisp-backtrace c)
@@ -175,7 +207,9 @@
 	       (when result
 		 #+nil
 		 (g-message "result = ~S" result)
-		 (let* ((value (invoke (result "get_js_value")))
+		 (let* ((value (if *43-api*
+				   result
+				   (invoke (result "get_js_value"))))
 			(str-value (progn
 				     #+nil
 				     (g-message "value = ~S" value)
@@ -188,18 +222,29 @@
 			 (t (setq contents result)
 			    (g-message "script result length = ~d~&" (length str-value))
 			    #+nil
-			    (g-message "Script result: ~a~&" str-value))))))
+			    (g-message "Script result: ~a~&" str-value)))))
+	       (progn (if (not *43-api*) (setq $js-result result))
+		      (setq $js-value result)))
 	     (invoke (main-loop "quit"))))
 
       (gir-lib:with-registered-callback (loc)
 	#'finish
 	(unless orig
 	  (setf (property settings "enable-javascript") t))
-	(invoke (web-view "run_javascript")
-		string
-		nil
-		(cffi:callback gir-lib::funcall-object-async-ready-callback)
-		loc)
+	(if *43-api*
+	    (invoke (web-view "evaluate_javascript")
+	      string
+	      -1
+	      nil
+	      nil
+	      nil
+	      (cffi:callback gir-lib::funcall-object-async-ready-callback)
+	      loc)
+	    (invoke (web-view "run_javascript")
+	      string
+	      nil
+	      (cffi:callback gir-lib::funcall-object-async-ready-callback)
+	      loc))
 	(unless orig
 	  (setf (property settings "enable-javascript") nil))
 	(invoke (main-loop "run")))
