@@ -232,6 +232,20 @@
 
 (export '(jsc-value-get-type jsc-value-get-object-class-name))
 
+
+(defun jsc-value-to-lisp (obj &key (number-type 'double) (default-json-p t))
+  (let ((type (jsc-value-get-type obj)) found (second-ret t))
+    (values
+     (cond ((setq found (car (member type '(boolean string))))
+	    (invoke (obj (format nil "to_~(~a~)" found))))
+	   ((eql type 'number)
+	    (check-type number-type (member double int32))
+	    (invoke (obj (format nil "to_~(~a~)" number-type))))
+	   (default-json-p (invoke (obj "to_json") 2))
+	   ((eql type 'undefined) 'undefined)
+	   (t (setq second-ret nil)
+	      obj))
+     second-ret)))
 
 ;;; ----------------------------------------------------------------------
 ;;;
