@@ -14,11 +14,15 @@
 
 (defvar *wkmkclext-binary-dir* (binary-directory *wkmkclext-source-dir*))
 
+#+mkcl ;; needs special handling - see Makefile
+(pushnew :exclude-mk-defsystem *features*)
+
+
 (mk:defsystem :wkmkclext
   :source-pathname *wkmkclext-source-dir*
   :binary-pathname *wkmkclext-binary-dir*
   :source-extension "lisp"
-  :depends-on (#-mkcl "defsystem" "cffi" "cl-gir" "closer-mop")
+  :depends-on (#-exclude-mk-defsystem "defsystem" "cffi" "cl-gir" "closer-mop")
   :components (
 	       "mkcl-backtrace"
 	       "wkmkclext-package"

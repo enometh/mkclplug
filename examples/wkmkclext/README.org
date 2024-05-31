@@ -62,6 +62,21 @@ LD_DEBUG=all ldd /tmp/lib64/wkmkclext.so
   #+BEGIN_SRC
 WEBKIT_EXT_DIR=/tmp/lib64 MiniBrowser file://proc/self/maps
   #+END_SRC
+*** NOTES handling defsystem dependency in wkmclext.system
+mkcl as of 1.11.178 does not support structure
+redefinitions. redefining a struct invalidates existing
+objects. wkmkclext.system :depends-on defsystem, using
+(mk:compile-system :defsystem) immediately hoses all existing
+component objects. to make it work with a hacked mk-defsystem we go
+through some convoluted steps which are shown in the Makefile
+#+begin_src
+ # load sample.initrc defsystem.system and clean defsystem.fas and defsystem.o
+make -fMakefile clean-defsystem-objects
+ # only compile defsystem.fas and defsystem.o (note: not mk:compile-file)!
+make -fMakefile defsystem-objects
+make -fMakefile OBJDIR=/tmp /tmp/libwkmkclext-library.so
+#+end_src
+
 
 * Bugs
 - irrecoverable floating point exceptions
