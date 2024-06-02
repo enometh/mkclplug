@@ -12,8 +12,6 @@
       nil "WKMKCLEXT-SIMPLE Feature ~:[absent~;present~] at compile time but ~:*~:[present~;absent~] at run time"
     +wkmkclext-simple-feature-present-p+))
 
-(defvar *webext* (gir:require-namespace "WebKit2WebExtension"))
-
 (defvar $this-extension nil)
 
 (defvar $initialization-hooks nil)
@@ -42,7 +40,8 @@
     :void
     ((WebKitWebExtension :pointer))
   (format t "Now playing: WebKitWebExtensionIntialize...~&")
-  (let ((gobject (gir::build-object-ptr (gir:nget *webext* "WebExtension")
+  (let ((gobject (gir::build-object-ptr (gir:nget (gir:require-namespace "WebKit2WebExtension")
+						  "WebExtension")
 					WebKitWebExtension)))
     (setq $this-extension gobject)
     (map nil (lambda (hook) (funcall hook)) $initialization-hooks))))
