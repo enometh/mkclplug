@@ -8,7 +8,7 @@
 (defvar +wkmkclext-simple-feature-present-p+ #+wkmkclext-simple t #-wkmkclext-simple nil)
 (eval-when (load eval)
   (assert (eq +wkmkclext-simple-feature-present-p+
-	      (load-time-value (find :wkmkclext-simple *features*)))
+	      (and (load-time-value (find :wkmkclext-simple *features*)) t))
       nil "WKMKCLEXT-SIMPLE Feature ~:[absent~;present~] at compile time but ~:*~:[present~;absent~] at run time"
     +wkmkclext-simple-feature-present-p+))
 
