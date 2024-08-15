@@ -52,9 +52,10 @@ each webprocess starts a dbus eval server
 busctl --user 2>/dev/null | grep code.girlib.wkmkclext | read busname pid name user dest unit session description ; echo  busctl --user introspect $busname  "/code/wkmkclext/$pid" code.girlib.EvalServer
 #+end_example
 we can use emacs to talk to it via org-babel
-#+begin_src elisp
+#+begin_src elisp :no-eval t
 ;; dbus-send --session --dest=org.freedesktop.DBus --type=method_call --print-reply /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep code.girlib.wkmkclext
 ;; busctl --user 2>/dev/null | grep code.girlib.wkmkclext
+
 (setq $exts
       (cl-remove-if-not (lambda (s) (cl-search "code.girlib.wkmkclext.id" s))
 			(dbus-call-method :session
@@ -68,15 +69,21 @@ we can use emacs to talk to it via org-babel
   (and (string-match "code.girlib.wkmkclext.id\\([0-9]+\\)" string)
        (match-string 1 string)))
 
-(defun eval-in-wyeb-ext (string dest)
-  (let ((pid (extract-pid dest)))
-    (dbus-call-method :session dest
-		      (format "/code/wkmkclext/%s" pid)
-		      "code.girlib.EvalServer"
-		      "Eval"
-		      string)))
+(cl-defun eval-in-wyeb-ext (string &optional (dest $ext))
+  (interactive "sEval in Wyeb Ext: ")
+  (let* ((pid (extract-pid dest))
+	 (ret
+	  (dbus-call-method :session dest
+			    (format "/code/wkmkclext/%s" pid)
+			    "code.girlib.EvalServer"
+			    "Eval"
+			    string)))
+    (if (called-interactively-p t)
+	(message "%s" ret)
+      ret)))
 
 ;; (eval-in-wyeb-ext "(+ 1 2)" $ext)
+;; (eval-in-wyeb-ext "(progn (load \"~/sly-config.lisp\")(cl-user::slynk-start))")
 
 ;; define a babel language `wyeb-ext' that executes a code block in
 ;; the default browser extension via dbus
