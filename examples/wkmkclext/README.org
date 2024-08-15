@@ -102,6 +102,24 @@ ln -sv ../lib64/wkmkclext.so /tmp/wkextdir
 WEBKIT_EXT_DIR=/tmp/wkextdir minibrowser about:blank &
 #+end_example
 
+* The "Simple" variant
+*** Explanatory note
+The non-simple variant uses lisp to dump a shared-library, which is
+then linked to a file which calls =mkcl_initialize_module= (see
+wkmkcl-check-init.c) when the module is loaded. The G_MODULE_EXPORT
+entrypoint to the webprocess is exported from lisp.
+
+The simple variant compiles a C file which defines the G_MODULE_EXPORT
+entrypoint to a sharedlibrary.  There is no dumping of a lisp image
+(with lisp libraries) as a dll involved.  Instead all the lisp
+libraries must be loaded via an initfile. This may be slower.
+
+#+begin_src
+# build simple variant
+rm -fv /tmp/lib64/wkmkclext-simple.so
+make /tmp/lib64/wkmkclext-simple.so
+#+end_src
+
 * EOF
 #+BEGIN_EXAMPLE
 ;;;

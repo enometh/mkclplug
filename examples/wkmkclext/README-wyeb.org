@@ -24,7 +24,14 @@ which load wkmkclext.system, and initializes the extension.
 on initialization the hooks in wkmkclext.lisp run, and one of these
 loads the girlib dbus backdoor, and the web extension process listens
 on dbus to evaluate lisp.
-
+** simple variant
+ln -sv /tmp/lib64/wkmkclext-simple.so /7/gtk/wyeb/build.amd64/
+/7/gtk/wyeb/build.amd64/*.so
+#+begin_example
+# this should show only these files
+/7/gtk/wyeb/build.amd64/ext.so
+/7/gtk/wyeb/build.amd64/wkmkclext-simple.so
+#+end_example
 
 ** connecting to the browser
 *** main
