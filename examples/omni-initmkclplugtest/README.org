@@ -1,0 +1,67 @@
+-*- Org -*-
+
+* examples/omni-initmkclplugtest
+
+standalone project to demonstrate the use of omni-initmkclplug.h.
+
+- [[file:Makefile][Makefile]] :: top level makefile. Call =make
+  ECLPLUG=1= or =make MKCLPLUG=1= or =make ECLPLUG=1 MKCLPLUG=1= to
+  build the executable.
+
+- [[file:config.mk][config.mk]] :: arrange to define make variables
+  =CFLAGS= and =LIBS= according to the definitions of make variables
+  =ECLPLUG= and =MKCLPLUG=. This includes defining the symbols
+  =OMNI_ECL= and/or =OMNI_MKCL= for the C preprocessor.
+
+- [[file:omni-mkclplugtest.c][omni-mkclplugtest.c] :: illustrate the
+  calls =include omni-initmkclplug.h= to =initmkclplug(0,0)=, the
+  program. The runtime lisp can be selected by setting the runtime
+  environment variable =OMNI_CL= to one of "ecl", "mkcl", or "none"
+
+  The program also illustrates how to expose private functions to lisp
+  (see =OVERRIDE_STATIC=), along with the =export-dynamic= linker
+  flag in config.mk.
+
+** test
+
+when compiled with make ECLPLUG=1 MKCLPLUG=1 but without OMNI_CL in
+the environment, =./a.out= starts the application named "eclplugtest"
+by default, which reads =~/.config/eclplugtest/initrc.lisp=
+
+=OMNI_CL=mkcl ./a.out= starts the application named "mkclplugtest"
+which reads =~/.config/mkclplugtest/initrc.lisp=
+
+If either initrc is syminked to
+[[file:../../mkclplugtest_initrc.lisp][mkclplugtest_initrc.lisp]], it
+will in turn monitor a file in /dev/shm/$(id
+-u)-eclplugtest-runtime/$(pidof a.out).lisp, for "eclplugtest" or
+/dev/shm/$(id -u)-mkclplugtest-runtime/$(pidof a.out).lisp if the
+application is "mkclplugtest".
+
+#+begin_src shell :eval no
+d=/dev/shm/$(id -u)-eclplugtest-runtime/ && echo $d
+echo $d
+# (setenv "d" (string-trim (shell-command-to-string "d=/dev/shm/$(id -u)-eclplugtest-runtime/ && echo $d")))
+./a.out
+#+end_src
+
+#+begin_src shell :eval no
+d=/dev/shm/$(id -u)-mkclpugtest-runtime/ && echo $d
+# (setenv "d" (string-trim (shell-command-to-string "d=/dev/shm/$(id -u)-mkclplugtest-runtime/ && echo $d")))
+OMNI_CL=mkcl ./a.out
+#+end_src
+
+in either case the runtime-initrc file ="${d}/$(pidof a.out).lisp"= can
+be used to start sly
+
+#+begin_src shell :eval no
+rm -ifv ${d}/*.lisp
+test `find $d -type f | wc -l` -eq 0 && echo '(load "~/cl/sly-config.lisp")(slynk-start)' >> $d/sample.l
+mv -iv $d/* $d/$(pidof a.out).lisp
+#+end_src
+
+can connect to sly as usual with =sly M-x sly-connect=
+
+#+begin_src lisp :eval no
+(cffi:foreign-symbol-pointer "handle_ctrl_c")
+#+end_src
