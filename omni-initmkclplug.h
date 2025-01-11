@@ -14,10 +14,16 @@
    initmkclplug(0,0) at a suitable point in your program.  The first
    parameter is the name of an environment variable, which defaults to
    "OMNI_CL" if NULL.  The value of this environmnent variable can be
-   "ecl", "mkcl", or "none".  The second parameter can also be "ecl",
-   "mkcl", or "none", and this can be used to override the value in
-   the environment variable, if needed.  Remember this function can be
-   called at most once in your program, of course.
+   "ecl", "mkcl", "default", or "none".  The second parameter can also
+   be "ecl", "mkcl", "default", or "none", and this can be used to
+   override the value in the environment variable, if needed.
+   Remember this function can be called at most once in your program,
+   of course, if it actually initializes ecl or mkcl.
+
+  If the environment variable is empty or not specified it is assumed
+  to be "default", which follows the order of the switch statement in
+  the code i.e. to choose ecl if it is compiled in, and if not, mkcl,
+  if it is compiled in.
 */
 #ifndef OMNI_MKCLPLUG_H
 #define OMNI_MKCLPLUG_H
@@ -27,7 +33,9 @@ initmkclplug(char *env_var_name, char *override) {
     enum omni_cl_t { omni_cl_none, omni_cl_default, omni_cl_ecl,
       omni_cl_mkcl } omni_cl;
     const char *omni_cl_s = g_getenv(env_var_name == 0 ? "OMNI_CL" : env_var_name);
-    if (omni_cl_s == NULL)
+    if (omni_cl_s == NULL || *omni_cl_s == '\0')
+      omni_cl = omni_cl_default;
+    else if (g_ascii_strcasecmp(omni_cl_s, "default") == 0)
       omni_cl = omni_cl_default;
     else if (g_ascii_strcasecmp(omni_cl_s, "none") == 0)
       omni_cl = omni_cl_none;
@@ -36,7 +44,7 @@ initmkclplug(char *env_var_name, char *override) {
     else if (g_ascii_strcasecmp(omni_cl_s, "mkcl") == 0)
       omni_cl = omni_cl_mkcl;
     else {
-      fprintf(stderr, "unknown value for env var OMNI_CL: %s. Wanted one of ecl mkcl or none. Treating as none.\n", omni_cl_s);
+      fprintf(stderr, "unknown value for env var OMNI_CL: %s. Wanted one of ecl, mkcl, default, or none. Treating as none.\n", omni_cl_s);
       omni_cl = omni_cl_none;
     }
     // start with omni_cl=none and load at runtime with surfcmd
@@ -45,8 +53,12 @@ initmkclplug(char *env_var_name, char *override) {
 		    omni_cl = omni_cl_ecl;
 	    else if (g_ascii_strcasecmp(override, "mkcl") == 0)
 		    omni_cl = omni_cl_mkcl;
+	    else if (g_ascii_strcasecmp(override, "default") == 0)
+		    omni_cl = omni_cl_default;
+	    else if (g_ascii_strcasecmp(override, "none") == 0)
+		    omni_cl = omni_cl_none;
 	    else {
-	      fprintf(stderr, "initmkclplugin: override: wanted one of ecl mkcl %s\n",
+	      fprintf(stderr, "initmkclplugin: %s. override: wanted one of ecl, mkcl, default, or none\n",
 		      override);
 	    }
     }
@@ -58,7 +70,7 @@ initmkclplug(char *env_var_name, char *override) {
 #endif
 #if defined(OMNI_MKCL)
     extern void mkcl_initialize(char *app);
-    if (omni_cl == omni_cl_default) omni_cl = omni_cl_ecl;
+    if (omni_cl == omni_cl_default) omni_cl = omni_cl_mkcl;
     if (omni_cl == omni_cl_mkcl)
       mkcl_initialize("mkclplugtest");
 #endif
