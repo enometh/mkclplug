@@ -294,5 +294,45 @@
 
 ;;; ----------------------------------------------------------------------
 ;;;
+;;; ;madhu 250117 - collect soup headers
 ;;;
 ;;;
+
+;; provide this via girlib-wk
+(eval-when (load eval compile)
+(defvar *soup* (gir:require-namespace "Soup" "3.0"))
+)
+
+(defun hdrs (webview &key (tahp :response))
+  "Tahp can be :response or :request"
+  (let* ((main-resource (gir:invoke (webview "get_main_resource")))
+	 (res (gir:property main-resource (ecase tahp
+					    (:response "response")
+					    (:request "request")))))
+    (gir:invoke (res "get_http_headers"))))
+
+(cffi:defcstruct (messages-header-iter :size #.(struct-info-get-size (info-of (nget *soup* "MessageHeadersIter")))))
+
+#+nil
+(= 24 (cffi:foreign-type-size '(:struct messages-header-iter)))
+
+(defun collect-headers (hdrs)
+  (cffi:with-foreign-object (msg-hdr-iter-ptr '(:struct messages-header-iter))
+    (let ((msg-hdr-iter  (gir::build-struct-ptr
+		       (nget *soup* "MessageHeadersIter")
+		       msg-hdr-iter-ptr)))
+      (cffi:foreign-funcall "soup_message_headers_iter_init"
+	:pointer msg-hdr-iter-ptr
+	:pointer (this-of hdrs)
+	:void)
+      (loop for  (ret key val) =
+	    (multiple-value-list (invoke (msg-hdr-iter "next")))
+	    while ret
+	    collect (cons key val)))))
+#||
+(collect-headers
+ (gir-lib:block-idle-add (hdrs (wyeb-user::wv) :tahp :response)))
+||#
+
+(export '(hdrs collect-headers))
+
