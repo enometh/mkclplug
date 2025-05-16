@@ -336,3 +336,87 @@
 
 (export '(hdrs collect-headers))
 
+
+;;; ----------------------------------------------------------------------
+;;;
+;;; ;madhu 250515 collect soup cookies
+;;;
+
+(defun get-cookie-accept-policy (cookie-mgr)
+  (gir-lib:block-idle-add
+    (call-with-async-ready-callback cookie-mgr "get_accept_policy")))
+
+(defun filter-soup-cookies (cookies domain)
+  "return only those SoupCookie cookies that match string domain."
+  (remove-if-not (lambda (c)
+		   (search domain (gir:invoke (c "get_domain"))))
+		 cookies))
+
+(defun all-cookies-soup
+    (soup-cookie-jar-path &key
+     match-domain
+     (storage-type (cond ((user::suffixp ".txt" soup-cookie-jar-path)
+			       "CookieJarText")
+			      ((user::suffixp ".sqlite" soup-cookie-jar-path)
+			       "CookieJarDB")
+			      (t (error "supply CookieJarText or CookieJarDB as storage-type")))))
+  (let (cookie-jar cookies-ptr cookies)
+    (when (and (setq cookie-jar
+		     (gir:invoke (*soup* storage-type "new")
+		       soup-cookie-jar-path t))
+	       (setq cookies-ptr
+		     (invoke (cookie-jar "all_cookies")))
+	       (not (cffi:null-pointer-p cookies-ptr))
+	       (setq cookies
+		     (list->objects cookies-ptr (nget *soup* "Cookie"))))
+      (if match-domain
+	  (filter-soup-cookies cookies match-domain)
+	  cookies))))
+
+(defun all-cookies (cookie-manager &key match-domain)
+  (let* ((ptr (block-idle-add
+		(call-with-async-ready-callback
+		 cookie-manager
+		 "get_all_cookies")))
+	 (cookies
+	  (unless (cffi:null-pointer-p ptr)
+	    (list->objects ptr (nget *soup* "Cookie")))))
+    (if match-domain
+	(filter-soup-cookies cookies match-domain)
+	cookies)))
+
+(defun cookies-matching (cm uri)
+  (let ((ptr (block-idle-add
+	       (call-with-async-ready-callback
+		cm
+		"get_cookies"
+		:args (list uri)))))
+    (unless (cffi:null-pointer-p ptr)
+      (list->objects ptr (nget *soup* "Cookie")))))
+
+
+(export '(get-cookie-accept-policy all-cookies-soup all-cookies
+	  cookies-matching))
+
+#||
+(setq $wv (wyeb-user::wv))
+(setq $cm (invoke ((property $wv "web-context") "get_cookie_manager")))
+(all-cookies $cm)
+(mapcar (lambda (c)
+	  (cons (invoke (c "get_domain"))
+		(invoke (c "to_cookie_header"))))
+	(all-cookies $cm :match-domain "stackoverflow"))
+(setq $a (all-cookies-soup "/dev/shm/cookies.txt" :match-domain "stackoverflow"))
+(block-idle-add
+  (mapcar (lambda (cookie)
+	    (call-with-async-ready-callback
+	     $cm "add_cookie"
+	     :args (list cookie)))
+	  $a))
+(block-idle-add
+  (mapcar (lambda (cookie)
+	    (call-with-async-ready-callback
+	     $cm "delete_cookie"
+	     :args (list cookie)))
+	  $a))
+||#
