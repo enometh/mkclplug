@@ -6,7 +6,7 @@ make sure ~/.config/mkclplug/initrc.lisp.
 ls -l  ~/.config/mkclplug/initrc.lisp
 ~/.config/mkclplug/initrc.lisp -> ~/cl/mkclplug/mkclplugtest_initrc.lisp
 This sets up the file monitor at the file
-/dev/shm/500-mkclplug-runtime/$(pidof wyeb).lisp
+/dev/shm/$(id -u)-mkclplug-runtime/$(pidof wyeb).lisp
 and loads it when it exists, and when it changes.
 *** ext
 wyeb is compiled with -DDEBUG, follow instructions in
@@ -43,7 +43,7 @@ mkdir -pv /dev/shm/$(id -u)-mkclplug-runtime
 pidof wyeb
 echo "(load \"~/cl/sly-config.lisp\")(ignore-errors (slynk-start))" > /dev/shm/$(id -u)-mkclplug-runtime/$(pidof wyeb).lisp
 # and when it changes
-mv -fv /dev/shm/500-mkclplug-runtime/* /dev/shm/500-mkclplug-runtime/$(pidof wyeb).lisp
+mv -fv /dev/shm/$(id -u)-mkclplug-runtime/* /dev/shm/$(id -u)-mkclplug-runtime/$(pidof wyeb).lisp
 # M-x sly-connect
 #+end_src
 *** ext
