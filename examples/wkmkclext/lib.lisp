@@ -20,7 +20,9 @@
    "$JS-VALUE"))
 (in-package "WKMKCLEXTLIB")
 
+;; the functions in this file should eventually end up in girlib-wk
 (require 'girlib-wk)
+
 #+nil
 (mapcar (lambda (x) (unintern x "WKMKCLEXTLIB"))
 	'(*wk* *wkext* *jsc*))
