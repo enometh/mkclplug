@@ -422,3 +422,105 @@
 	     :args (list cookie)))
 	  $a))
 ||#
+
+
+;;; ----------------------------------------------------------------------
+;;;
+;;; Settings
+;;;
+
+(defun dump-settings-to-file (settings output-file)
+  (let ((new (invoke (*glib* "KeyFile" "new"))))
+    (loop for (k . v) in  (gir::list-props settings)
+	  do (etypecase v
+	       (boolean
+		(invoke (new "set_boolean") "websettings" k v))
+	       (string
+		(invoke (new "set_string") "websettings" k v))
+	       (integer
+		(unless (equal k "hardware-acceleration-policy")
+		  (invoke (new "set_integer") "websettings" k v)))))
+    (invoke (new "save_to_file") output-file)))
+
+(export 'dump-settings-to-file)
+
+
+;;; ----------------------------------------------------------------------
+;;;
+;;; Settings: Features
+;;;
+
+#||
+(nget *wk* "FeatureList")
+(nget *wk* "Settings" "get_all_features")
+(list-class-functions-desc (nget *wk* "Settings"))
+||#
+
+(defvar +wk-feature-slots+
+  '(category default-value details identifier name status))
+
+(defun feature->plist (wk-feature)
+  (mapcar (lambda (slot)
+	    (list (intern (symbol-name slot) :keyword)
+		  (invoke (wk-feature (concatenate 'string "get_" (gir::c-name slot))))))
+	  +wk-feature-slots+))
+
+(defmacro with-feature-slots ((&rest slot-bindings) feature &body body)
+  (let* ((feature-var (gensym))
+	 (binds-1 ;; slot-bindngs == (slot-name) or ((var slot-name))
+	  (loop for elt in slot-bindings collect
+	       (let (slot-name var-name)
+		 (etypecase elt
+		   (atom (setq slot-name elt var-name elt))
+		   (cons (setq slot-name (cadr elt) var-name (car elt))
+			 (assert (null (cddr elt)))))
+		 (check-type var-name symbol)
+		 (check-type slot-name symbol)
+		 (assert  (find (symbol-name slot-name) +wk-feature-slots+
+				:test #'equal :key #'symbol-name))
+		 (list var-name `(gir:invoke (,feature-var ,(concatenate 'string "get_" (gir::c-name slot-name)))))))))
+    `(let* ((,feature-var ,feature)
+	   ,@binds-1)
+       ,@body)))
+
+#+nil
+(with-feature-slots ((cat category) details) x (list cat details))
+
+(defun get-feature-list (flag)
+  (invoke (*wk* "Settings" (ecase flag
+			     (:exp "get_experimental_features")
+			     (:dev "get_development_features")
+			     (:all "get_all_features")))))
+
+(defun map-feature-list (fn feature-list &key return-type)
+  (etypecase feature-list
+    (gir::struct-instance nil)
+    (keyword (setq feature-list (get-feature-list feature-list))))
+  (let* ((ret (cons t nil))
+	 (tail ret)
+	 (len (invoke (feature-list "get_length"))))
+    (loop for i below len
+	  for feature = (invoke (feature-list "get") i)
+	  for result = (funcall fn feature)
+	  if return-type do (let ((new-cons (cons result nil)))
+			      (setf (cdr tail) new-cons)
+			      (setq tail new-cons)))
+    (if return-type (coerce (cdr ret) return-type))))
+
+#+nil
+(block-idle-add
+  (time (map-feature-list 'feature->plist :exp :return-type 'list)))
+
+#+nil
+(block-idle-add
+  (setq $all-names
+   (map-feature-list (lambda (feature)
+		       (with-feature-slots (name) feature
+			 name))
+		     :dev
+		     :return-type 'list)))
+
+(export '(get-feature-list
+	  with-feature-slots
+	  map-feature-list
+	  feature->plist))
