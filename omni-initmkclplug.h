@@ -24,10 +24,41 @@
   to be "default", which follows the order of the switch statement in
   the code i.e. to choose ecl if it is compiled in, and if not, mkcl,
   if it is compiled in.
+
+  Operational Modes:
+
+  1.  #include <omni-initmkclplug.h>
+
+	exactly once in one of your C files to include a static
+	definition of `initmkclplug' which you can call further down.
+	This is the simplest way to use it.
+
+  2a. #define OMNI_MKCLPLUG_DECL
+      #include <omni-initmkclplug.h>
+
+	in any C file to make the declaration of `initmkclplug'
+	available before you call it.
+
+   2b. #define OMNI_MKCLPLUG_IMPL
+       #include <omni-initmkclplug.h>
+
+	exactly once in one of your C files to define the
+	implementation of `initmkclplug'
+
 */
 #ifndef OMNI_MKCLPLUG_H
 #define OMNI_MKCLPLUG_H
-static void
+
+#if defined(OMNI_MKCLPLUG_DECL) || defined(OMNI_MKCLPLUG_IMPL)
+#define OMNI_STATIC
+#else
+#define OMNI_STATIC static
+#endif
+
+OMNI_STATIC void initmkclplug(char *env_var_name, char *override);
+
+#if defined(OMNI_MKCLPLUG_IMPL) || (!defined(OMNI_MKCLPLUG_DECL) && !defined(OMNI_MKCLPLUG_IMPL))
+OMNI_STATIC void
 initmkclplug(char *env_var_name, char *override) {
 #if defined(OMNI_ECL)
     extern void ecl_initialize(char *app);
@@ -81,4 +112,10 @@ initmkclplug(char *env_var_name, char *override) {
 #endif
 #endif
 }
+#endif //OMNI_MKCL_PLUG_IMPL
+
+#if defined(OMNI_MKCLPLUG_DECL) || defined(OMNI_MKCLPLUG_IMPL)
+#undef OMNI_STATIC
+#endif
+
 #endif // OMNI_MKCLPLUG_H
